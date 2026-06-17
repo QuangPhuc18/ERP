@@ -49,5 +49,6 @@ namespace MiniERP.API.Data
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<PurchaseOrderDetail> PurchaseOrderDetails { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }

@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.API.Data;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MiniERP.API.Controllers
 {
@@ -30,7 +33,7 @@ namespace MiniERP.API.Controllers
             var totalCustomers = await _context.Customers.CountAsync();
             var monthlyRevenue = await _context.Orders
                 .Where(o => o.OrderDate >= firstDayOfMonth && o.Status != "Cancelled")
-                .SumAsync(o => o.TotalAmount);
+                .SumAsync(o => (double?)o.TotalAmount) ?? 0;
 
             // 2. Doanh thu 6 tháng gần nhất
             var sixMonthOrders = await _context.Orders
@@ -40,8 +43,8 @@ namespace MiniERP.API.Controllers
             var revenueByMonth = sixMonthOrders
                 .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
                 .Select(g => new {
-                    Month = $"T{g.Key.Month}",
-                    Revenue = g.Sum(o => o.TotalAmount)
+                    month = $"T{g.Key.Month}", // 🎯 Sửa thành chữ thường đầu để khớp React
+                    revenue = g.Sum(o => o.TotalAmount)
                 })
                 .ToList();
 
@@ -51,10 +54,10 @@ namespace MiniERP.API.Controllers
                 .Where(od => od.Order.Status != "Cancelled")
                 .GroupBy(od => od.ProductId)
                 .Select(g => new {
-                    ProductName = g.First().Product != null ? g.First().Product.ProductName : "Sản phẩm đã xóa",
-                    SoldQuantity = g.Sum(od => od.Quantity)
+                    productName = g.First().Product != null ? g.First().Product.ProductName : "Sản phẩm đã xóa",
+                    soldQuantity = g.Sum(od => od.Quantity)
                 })
-                .OrderByDescending(x => x.SoldQuantity)
+                .OrderByDescending(x => x.soldQuantity)
                 .Take(5)
                 .ToListAsync();
 
@@ -62,8 +65,8 @@ namespace MiniERP.API.Controllers
             var orderStats = await _context.Orders
                 .GroupBy(o => o.Status)
                 .Select(g => new {
-                    Status = g.Key,
-                    Count = g.Count()
+                    status = g.Key,
+                    count = g.Count()
                 })
                 .ToListAsync();
 
@@ -71,10 +74,10 @@ namespace MiniERP.API.Controllers
             var lowStockProducts = await _context.Products
                 .Where(p => p.Quantity <= 5)
                 .Select(p => new {
-                    p.ProductName,
-                    p.Quantity
+                    productName = p.ProductName,
+                    quantity = p.Quantity
                 })
-                .OrderBy(p => p.Quantity)
+                .OrderBy(p => p.quantity)
                 .Take(5)
                 .ToListAsync();
 
@@ -85,8 +88,8 @@ namespace MiniERP.API.Controllers
                 .Where(od => od.Order.Status != "Cancelled")
                 .GroupBy(od => od.Product.Category != null ? od.Product.Category.Name : "Chưa phân loại")
                 .Select(g => new {
-                    CategoryName = g.Key,
-                    Revenue = g.Sum(od => od.Quantity * od.UnitPrice)
+                    categoryName = g.Key,
+                    revenue = g.Sum(od => od.Quantity * od.UnitPrice)
                 })
                 .ToListAsync();
 
@@ -96,22 +99,44 @@ namespace MiniERP.API.Controllers
                 .Where(o => o.CustomerId != null && o.Status != "Cancelled")
                 .GroupBy(o => o.CustomerId)
                 .Select(g => new {
-                    CustomerName = g.First().Customer != null ? g.First().Customer.FullName : "Khách ẩn danh",
-                    TotalSpent = g.Sum(o => o.TotalAmount)
+                    customerName = g.First().Customer != null ? g.First().Customer.FullName : "Khách ẩn danh",
+                    totalSpent = g.Sum(o => o.TotalAmount)
                 })
-                .OrderByDescending(x => x.TotalSpent)
+                .OrderByDescending(x => x.totalSpent)
                 .Take(5)
                 .ToListAsync();
 
+            // 🎯 8. BỔ SUNG QUY TRÌNH: Tính toán biến động hàng hóa (Nhập - Xuất - Tồn) tháng này
+            var monthlyProductFlow = await _context.Products
+                .Select(p => new {
+                    productName = p.ProductName,
+
+                    // Tổng số lượng nhập kho qua các phiếu PO từ đầu tháng đến nay
+                    importedQuantity = _context.PurchaseOrderDetails
+                        .Where(pod => pod.ProductId == p.Id && pod.PurchaseOrder.OrderDate >= firstDayOfMonth)
+                        .Sum(pod => (int?)pod.Quantity) ?? 0,
+
+                    // Tổng số lượng xuất bán qua các đơn hàng POS từ đầu tháng đến nay
+                    soldQuantity = _context.OrderDetails
+                        .Where(od => od.ProductId == p.Id && od.Order.OrderDate >= firstDayOfMonth && od.Order.Status != "Cancelled")
+                        .Sum(od => (int?)od.Quantity) ?? 0,
+
+                    // Số lượng thực tế còn lại trong kho hiện tại
+                    currentStock = p.Quantity
+                })
+                .ToListAsync();
+
+            // Đóng gói trả ra Client với cấu trúc camelCase chuẩn chỉ 100%
             return Ok(new
             {
-                Kpis = new { totalProducts, totalOrders, totalCustomers, monthlyRevenue },
-                RevenueByMonth = revenueByMonth,
-                TopProducts = topProducts,
-                OrderStats = orderStats,
-                LowStockProducts = lowStockProducts,
-                CategoryRevenue = categoryRevenue,
-                TopCustomers = topCustomers
+                kpis = new { totalProducts, totalOrders, totalCustomers, monthlyRevenue },
+                revenueByMonth = revenueByMonth,
+                topProducts = topProducts,
+                orderStats = orderStats,
+                lowStockProducts = lowStockProducts,
+                categoryRevenue = categoryRevenue,
+                topCustomers = topCustomers,
+                monthlyProductFlow = monthlyProductFlow // 🎯 Trả về cục data này cho bảng
             });
         }
     }
