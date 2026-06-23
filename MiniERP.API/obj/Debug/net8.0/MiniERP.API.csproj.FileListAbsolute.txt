@@ -139,5 +139,5 @@ D:\CSharp\ERP\MiniERP.API\obj\Debug\net8.0\MiniERP.API.genruntimeconfig.cache
 D:\CSharp\ERP\MiniERP.API\obj\Debug\net8.0\ref\MiniERP.API.dll
 D:\CSharp\ERP\MiniERP.API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 D:\CSharp\ERP\MiniERP.API\bin\Debug\net8.0\BCrypt-Net-Next.dll
-D:\CSharp\ERP\MiniERP.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 D:\CSharp\ERP\MiniERP.API\obj\Debug\net8.0\MiniERP.API.sourcelink.json
+D:\CSharp\ERP\MiniERP.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

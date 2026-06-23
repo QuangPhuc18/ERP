@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace MiniERP.API.DTOs
 {
@@ -6,9 +6,6 @@ namespace MiniERP.API.DTOs
     {
         [JsonPropertyName("employeeId")]
         public int EmployeeId { get; set; }
-
-        [JsonPropertyName("workDays")]
-        public double WorkDays { get; set; }
 
         [JsonPropertyName("month")]
         public int Month { get; set; }

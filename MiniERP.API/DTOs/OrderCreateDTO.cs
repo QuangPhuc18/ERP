@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace MiniERP.API.DTOs
 {
@@ -22,6 +22,12 @@ namespace MiniERP.API.DTOs
 
         [Required]
         public decimal TotalAmount { get; set; }
+
+        public decimal AmountPaid { get; set; }
+
+        public string PaymentMethod { get; set; } = "Cash";
+
+        public string? Note { get; set; }
 
         [Required]
         public List<OrderDetailDTO> Details { get; set; } = new List<OrderDetailDTO>();

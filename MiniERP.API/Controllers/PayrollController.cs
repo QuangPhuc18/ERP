@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.API.DTOs;
@@ -45,9 +45,11 @@ namespace MiniERP.API.Controllers
         [HttpPost("timesheet")]
         public async Task<IActionResult> SubmitTimesheet([FromBody] SubmitTimesheetDTO dto)
         {
-            var validStatuses = new List<string> { "Present", "Half-day", "Absent" };
-            if (!validStatuses.Contains(dto.Status))
-                return BadRequest("Trạng thái chỉ được nhập: Present, Half-day hoặc Absent.");
+            if (dto.CheckInTime == default)
+                return BadRequest("Giờ Check-in không hợp lệ.");
+
+            if (dto.CheckOutTime.HasValue && dto.CheckOutTime <= dto.CheckInTime)
+                return BadRequest("Giờ Check-out phải lớn hơn giờ Check-in.");
 
             await _repository.SubmitTimesheetAsync(dto);
             return Ok("Ghi nhận chấm công thành công!");

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.API.DTOs;
 using MiniERP.API.Entities;
@@ -32,7 +32,9 @@ namespace MiniERP.API.Controllers
                 FullName = dto.FullName,
                 Email = dto.Email,
                 DepartmentId = dto.DepartmentId,
-                DailySalary = dto.DailySalary
+                DailySalary = dto.DailySalary,
+                EmployeeType = dto.EmployeeType,
+                HourlyRate = dto.HourlyRate
             }).ToList();
 
             try
@@ -71,7 +73,9 @@ namespace MiniERP.API.Controllers
                 FullName = createDto.FullName,
                 Email = createDto.Email,
                 DepartmentId = createDto.DepartmentId,
-                DailySalary = createDto.DailySalary
+                DailySalary = createDto.DailySalary,
+                EmployeeType = createDto.EmployeeType,
+                HourlyRate = createDto.HourlyRate
             };
 
             await _repository.AddAsync(employee);
@@ -89,7 +93,9 @@ namespace MiniERP.API.Controllers
                 FullName = updateDto.FullName,
                 Email = updateDto.Email,
                 DepartmentId = updateDto.DepartmentId,
-                DailySalary = updateDto.DailySalary
+                DailySalary = updateDto.DailySalary,
+                EmployeeType = updateDto.EmployeeType,
+                HourlyRate = updateDto.HourlyRate
             };
 
             await _repository.UpdateAsync(employee);

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MiniERP.API.Entities
 {
@@ -12,7 +12,9 @@ namespace MiniERP.API.Entities
         public int Month { get; set; }
         public int Year { get; set; }
 
-        public double TotalWorkDays { get; set; } // Tổng số ngày đi làm thực tế
+        public double TotalWorkDays { get; set; } // Tổng số ngày đi làm thực tế (FullTime)
+
+        public double TotalHours { get; set; } = 0; // Tổng số giờ làm việc thực tế (PartTime)
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalAmount { get; set; } // Tổng tiền lương nhận được

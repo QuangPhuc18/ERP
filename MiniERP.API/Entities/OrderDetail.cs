@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MiniERP.API.Entities
@@ -24,5 +24,8 @@ namespace MiniERP.API.Entities
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal UnitPrice { get; set; } // Đơn giá lúc mua (tránh việc sau này giá SP đổi làm sai lịch sử)
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal UnitCost { get; set; } // Giá vốn lúc bán (để tính lợi nhuận chuẩn xác)
     }
 }

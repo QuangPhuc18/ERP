@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace MiniERP.API.DTOs
 {
@@ -11,8 +11,11 @@ namespace MiniERP.API.DTOs
         public DateTime Date { get; set; } // Ngày chấm công
 
         [Required]
-        // Trạng thái chỉ được nhập 1 trong 3: Present, Half-day, Absent
-        public string Status { get; set; } = "Present";
+        public DateTime CheckInTime { get; set; } // Bắt buộc phải có giờ vào
+
+        public DateTime? CheckOutTime { get; set; } // Giờ ra có thể để trống nếu chưa về
+
+        public double BreakHours { get; set; } = 0; // Thời gian nghỉ trưa/nghỉ giữa ca (Giờ)
 
         public string Note { get; set; } = string.Empty;
     }

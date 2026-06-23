@@ -1,4 +1,4 @@
-﻿namespace MiniERP.API.DTOs
+namespace MiniERP.API.DTOs
 {
     public class EmployeeDTO
     {
@@ -9,6 +9,8 @@
         // Thay vì trả về nguyên object Department, ta chỉ trả về cái tên cho gọn nhẹ
         public string DepartmentName { get; set; } = string.Empty;
         public decimal DailySalary { get; set; }
+        public string EmployeeType { get; set; } = "FullTime";
+        public decimal HourlyRate { get; set; }
         public string DepartmentId { get; set; } = string.Empty; // 🎯 Dòng quan trọng để Frontend bắt được ID phòng ban
     }
 }

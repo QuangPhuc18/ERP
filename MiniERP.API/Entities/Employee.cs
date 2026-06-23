@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations; // Bắt buộc thêm thư viện này
+using System.ComponentModel.DataAnnotations; // Bắt buộc thêm thư viện này
 using System.ComponentModel.DataAnnotations.Schema;
 namespace MiniERP.API.Entities
 {
@@ -17,6 +17,11 @@ namespace MiniERP.API.Entities
         public Account? Account { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal DailySalary { get; set; } = 300000; // Mặc định 300k/ngày
+
+        public string EmployeeType { get; set; } = "FullTime"; // FullTime hoặc PartTime
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal HourlyRate { get; set; } = 0; // Dành cho PartTime (VD: 22000)
 
         // THÊM: Thuộc tính điều hướng (1 Nhân viên có nhiều ngày chấm công, nhiều phiếu lương)
         public ICollection<Timesheet>? Timesheets { get; set; }

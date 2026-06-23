@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.API.Data;
@@ -79,11 +79,25 @@ namespace MiniERP.API.Controllers
                     if (product == null)
                         return BadRequest($"Sản phẩm có ID {item.ProductId} không tồn tại trên hệ thống!");
 
-                    // TỰ ĐỘNG CỘNG TỒN KHO
-                    product.Quantity += item.Quantity;
+                    // 🎯 KẾT HỢP NGHIỆP VỤ KẾ TOÁN: TÍNH GIÁ VỐN BÌNH QUÂN GIA QUYỀN (MAC)
+                    // Công thức: (Giá trị tồn cũ + Giá trị nhập mới) / Tổng số lượng sau nhập
+                    int totalNewQuantity = product.Quantity + item.Quantity;
+                    
+                    if (totalNewQuantity > 0)
+                    {
+                        decimal totalOldValue = product.Quantity * product.CostPrice;
+                        decimal totalNewValue = item.Quantity * item.UnitPrice;
+                        
+                        product.CostPrice = (totalOldValue + totalNewValue) / totalNewQuantity;
+                    }
+                    else
+                    {
+                        // Fallback an toàn: Nếu kho bằng 0 hoặc âm, lấy giá nhập mới làm giá vốn
+                        product.CostPrice = item.UnitPrice;
+                    }
 
-                    // Cập nhật lại giá vốn (CostPrice) mới nhất cho sản phẩm
-                    product.CostPrice = item.UnitPrice;
+                    // 2. SAU KHI TÍNH GIÁ VỐN XONG, MỚI CỘNG DỒN SỐ LƯỢNG KHO
+                    product.Quantity += item.Quantity;
 
                     var detail = new PurchaseOrderDetail
                     {

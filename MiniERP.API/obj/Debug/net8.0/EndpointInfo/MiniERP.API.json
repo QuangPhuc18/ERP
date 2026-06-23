@@ -1218,6 +1218,14 @@
           "dailySalary": {
             "type": "number",
             "format": "double"
+          },
+          "employeeType": {
+            "type": "string",
+            "nullable": true
+          },
+          "hourlyRate": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -1349,6 +1357,14 @@
             "type": "number",
             "format": "double"
           },
+          "employeeType": {
+            "type": "string",
+            "nullable": true
+          },
+          "hourlyRate": {
+            "type": "number",
+            "format": "double"
+          },
           "timesheets": {
             "type": "array",
             "items": {
@@ -1424,6 +1440,18 @@
             "type": "number",
             "format": "double"
           },
+          "amountPaid": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
           "details": {
             "type": "array",
             "items": {
@@ -1464,10 +1492,6 @@
           "employeeId": {
             "type": "integer",
             "format": "int32"
-          },
-          "workDays": {
-            "type": "number",
-            "format": "double"
           },
           "month": {
             "type": "integer",
@@ -1658,6 +1682,10 @@
             "type": "number",
             "format": "double"
           },
+          "totalHours": {
+            "type": "number",
+            "format": "double"
+          },
           "totalAmount": {
             "type": "number",
             "format": "double"
@@ -1674,9 +1702,9 @@
       },
       "SubmitTimesheetDTO": {
         "required": [
+          "checkInTime",
           "date",
-          "employeeId",
-          "status"
+          "employeeId"
         ],
         "type": "object",
         "properties": {
@@ -1688,9 +1716,18 @@
             "type": "string",
             "format": "date-time"
           },
-          "status": {
-            "minLength": 1,
-            "type": "string"
+          "checkInTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "checkOutTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "breakHours": {
+            "type": "number",
+            "format": "double"
           },
           "note": {
             "type": "string",
@@ -1731,8 +1768,7 @@
       },
       "Timesheet": {
         "required": [
-          "date",
-          "status"
+          "date"
         ],
         "type": "object",
         "properties": {
@@ -1751,9 +1787,19 @@
             "type": "string",
             "format": "date-time"
           },
-          "status": {
-            "minLength": 1,
-            "type": "string"
+          "checkInTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "checkOutTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "totalHours": {
+            "type": "number",
+            "format": "double"
           },
           "note": {
             "type": "string",

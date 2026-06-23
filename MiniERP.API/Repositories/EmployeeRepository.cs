@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using MiniERP.API.Data;
 using MiniERP.API.DTOs;
 using MiniERP.API.Entities;
@@ -34,6 +34,8 @@ namespace MiniERP.API.Repositories
                     FullName = e.FullName,
                     Email = e.Email,
                     DailySalary = e.DailySalary,
+                    EmployeeType = e.EmployeeType,
+                    HourlyRate = e.HourlyRate,
                     DepartmentName = e.Department != null ? e.Department.Name : "Chưa phân phòng",
                     // 🎯 Dòng quan trọng để Frontend bắt được ID phòng ban
                     DepartmentId = e.DepartmentId.ToString()

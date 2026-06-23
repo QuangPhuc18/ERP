@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace MiniERP.API.DTOs
 {
@@ -14,5 +14,7 @@ namespace MiniERP.API.DTOs
         [Required(ErrorMessage = "Vui lòng chọn phòng ban")]
         public int DepartmentId { get; set; }
         public decimal DailySalary { get; set; }
+        public string EmployeeType { get; set; } = "FullTime";
+        public decimal HourlyRate { get; set; }
     }
 }

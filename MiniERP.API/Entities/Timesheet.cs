@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace MiniERP.API.Entities
 {
@@ -12,8 +12,11 @@ namespace MiniERP.API.Entities
         [Required]
         public DateTime Date { get; set; } // Ngày chấm công
 
-        [Required]
-        public string Status { get; set; } = "Present"; // Trạng thái: Present (Có mặt), Absent (Vắng), Half-day (Nửa ngày)
+        public DateTime? CheckInTime { get; set; } // Giờ bấm vân tay vào
+        
+        public DateTime? CheckOutTime { get; set; } // Giờ bấm vân tay ra
+
+        public double TotalHours { get; set; } = 0; // Tổng số giờ làm việc thực tế
 
         public string Note { get; set; } = string.Empty; // Ghi chú đi trễ, về sớm...
     }

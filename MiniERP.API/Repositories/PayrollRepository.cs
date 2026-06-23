@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using MiniERP.API.Data;
 using MiniERP.API.DTOs;
 using MiniERP.API.Entities;
@@ -16,11 +16,20 @@ namespace MiniERP.API.Repositories
 
         public async Task SubmitTimesheetAsync(SubmitTimesheetDTO dto)
         {
+            double totalHours = 0;
+            if (dto.CheckOutTime.HasValue)
+            {
+                totalHours = (dto.CheckOutTime.Value - dto.CheckInTime).TotalHours - dto.BreakHours;
+                if (totalHours < 0) totalHours = 0; // Đảm bảo không bị âm
+            }
+
             var timesheet = new Timesheet
             {
                 EmployeeId = dto.EmployeeId,
                 Date = dto.Date,
-                Status = dto.Status,
+                CheckInTime = dto.CheckInTime,
+                CheckOutTime = dto.CheckOutTime,
+                TotalHours = totalHours,
                 Note = dto.Note
             };
             _context.Timesheets.Add(timesheet);
@@ -30,21 +39,38 @@ namespace MiniERP.API.Repositories
         // 🎯 ĐÂY LÀ HÀM SẼ ĐƯỢC CHẠY KHI BẤM NÚT TÍNH LƯƠNG
         public async Task<Salary> CalculateSalaryAsync(PayrollRequestDto request)
         {
-            // 1. Tìm nhân viên để lấy mức lương ngày
             var employee = await _context.Employees.FindAsync(request.EmployeeId);
             if (employee == null) throw new Exception("Không tìm thấy thông tin nhân viên.");
 
-            // 2. Tính lương = Ngày công x Lương cơ bản
-            decimal totalAmount = (decimal)request.WorkDays * employee.DailySalary;
+            // Tự động quét bảng Timesheet thay vì tin tưởng WorkDays từ Frontend
+            var timesheets = await _context.Timesheets
+                .Where(t => t.EmployeeId == request.EmployeeId && t.Date.Month == request.Month && t.Date.Year == request.Year)
+                .ToListAsync();
 
-            // 3. Kiểm tra xem đã tính lương tháng này chưa
+            double totalWorkDays = 0;
+            double totalHours = 0;
+            decimal totalAmount = 0;
+
+            if (employee.EmployeeType == "PartTime")
+            {
+                totalHours = timesheets.Sum(t => t.TotalHours);
+                totalAmount = (decimal)totalHours * employee.HourlyRate;
+            }
+            else // FullTime
+            {
+                totalHours = timesheets.Sum(t => t.TotalHours);
+                // Một ngày công chuẩn là 8 tiếng. Quy đổi tổng số giờ ra ngày công, làm tròn 2 chữ số.
+                totalWorkDays = Math.Round(totalHours / 8.0, 2); 
+                totalAmount = (decimal)totalWorkDays * employee.DailySalary;
+            }
+
             var existingSalary = await _context.Salaries
                 .FirstOrDefaultAsync(s => s.EmployeeId == request.EmployeeId && s.Month == request.Month && s.Year == request.Year);
 
             if (existingSalary != null)
             {
-                // Nếu có rồi thì cập nhật lại số tiền và ngày công
-                existingSalary.TotalWorkDays = request.WorkDays;
+                existingSalary.TotalWorkDays = totalWorkDays;
+                existingSalary.TotalHours = totalHours;
                 existingSalary.TotalAmount = totalAmount;
                 existingSalary.CalculatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
@@ -52,13 +78,13 @@ namespace MiniERP.API.Repositories
             }
             else
             {
-                // Nếu chưa có thì tạo mới phiếu lương
                 var newSalary = new Salary
                 {
                     EmployeeId = request.EmployeeId,
                     Month = request.Month,
                     Year = request.Year,
-                    TotalWorkDays = request.WorkDays,
+                    TotalWorkDays = totalWorkDays,
+                    TotalHours = totalHours,
                     TotalAmount = totalAmount,
                     CalculatedAt = DateTime.Now
                 };

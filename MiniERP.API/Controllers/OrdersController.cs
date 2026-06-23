@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.API.Data;
@@ -22,13 +22,18 @@ namespace MiniERP.API.Controllers
         {
             var orders = await _context.Orders
                 .Include(o => o.Customer)
+                .Include(o => o.Employee)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Product)
                 .Select(o => new {
                     o.Id,
                     CustomerName = o.Customer != null ? o.Customer.FullName : "Khách vãng lai",
+                    EmployeeName = o.Employee != null ? o.Employee.FullName : "System",
                     o.OrderDate,
                     o.TotalAmount,
+                    o.AmountPaid,
+                    o.PaymentMethod,
+                    o.Note,
                     o.Status,
                     Details = o.OrderDetails.Select(od => new {
                         ProductName = od.Product != null ? od.Product.ProductName : "SP đã xóa",
@@ -61,11 +66,23 @@ namespace MiniERP.API.Controllers
 
             try
             {
+                // Lấy EmployeeId từ Token
+                var employeeIdClaim = User.FindFirst("EmployeeId")?.Value;
+                int? employeeId = null;
+                if (int.TryParse(employeeIdClaim, out int empId))
+                {
+                    employeeId = empId;
+                }
+
                 var order = new Order
                 {
                     CustomerId = dto.CustomerId,
+                    EmployeeId = employeeId,
                     OrderDate = DateTime.Now,
-                    Status = "Completed",
+                    AmountPaid = dto.AmountPaid,
+                    PaymentMethod = dto.PaymentMethod,
+                    Note = dto.Note,
+                    Status = "Completed", // Sẽ được kiểm tra lại ở dưới
                     TotalAmount = 0 // Sẽ được tính lại ở dưới để đảm bảo bảo mật
                 };
 
@@ -86,11 +103,18 @@ namespace MiniERP.API.Controllers
                     {
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
-                        UnitPrice = product.Price
+                        UnitPrice = product.Price,
+                        UnitCost = product.CostPrice // 🎯 Chốt cứng giá vốn tại thời điểm bán
                     };
 
                     order.TotalAmount += (item.Quantity * product.Price);
                     order.OrderDetails.Add(orderDetail);
+                }
+
+                // Xác định trạng thái công nợ
+                if (order.AmountPaid < order.TotalAmount)
+                {
+                    order.Status = "Debt"; // Ghi nợ nếu trả chưa đủ
                 }
 
                 _context.Orders.Add(order);

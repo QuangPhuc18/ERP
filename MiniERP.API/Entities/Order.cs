@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema; // 🎯 Bắt buộc phải có dòng này
 
 namespace MiniERP.API.Entities
@@ -11,6 +11,10 @@ namespace MiniERP.API.Entities
         public int? CustomerId { get; set; }
         public Customer? Customer { get; set; }
 
+        public int? EmployeeId { get; set; }
+        [ForeignKey("EmployeeId")]
+        public Employee? Employee { get; set; }
+
         public DateTime OrderDate { get; set; }
 
         // 🎯 Bổ sung quy định kiểu dữ liệu tiền tệ vào đây
@@ -18,6 +22,13 @@ namespace MiniERP.API.Entities
         public decimal TotalAmount { get; set; }
 
         public string Status { get; set; } = "Completed";
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal AmountPaid { get; set; } = 0; // Tiền khách đưa thực tế
+
+        public string PaymentMethod { get; set; } = "Cash"; // Tiền mặt, Chuyển khoản, Thẻ
+
+        public string? Note { get; set; } // Ghi chú đơn hàng
 
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
     }
