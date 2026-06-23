@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  /* Khai báo hệ thống màu */
+  --color-surface-container-low: #f2f3ff;
+  --color-primary-fixed: #d6e3fc;
+  --color-on-primary-fixed-variant: #3b475b;
+  --color-background: #faf8ff;
+  --color-secondary-container: #fea619;
+  --color-surface-dim: #d2d9f4;
+  --color-surface-container: #eaedff;
+  --color-surface-variant: #dae2fd;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-high: #e2e7ff;
+  --color-primary: #000000;
+  --color-on-surface: #131b2e;
+  --color-on-surface-variant: #44474c;
+  --color-outline-variant: #c5c6cd;
+  --color-error: #ba1a1a;
+  --color-on-primary-container: #78849b;
+  --color-primary-container: #0f1c2e;
+  --color-secondary: #855300;
+
+  /* Khai báo Font chữ */
+  --font-badge: "Plus Jakarta Sans", sans-serif;
+  --font-section-title: "Plus Jakarta Sans", sans-serif;
+  --font-page-title: "Plus Jakarta Sans", sans-serif;
+  --font-card-label: "Plus Jakarta Sans", sans-serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-code-id: "JetBrains Mono", monospace;
+  --font-table-header: "Plus Jakarta Sans", sans-serif;
+
+  /* Khai báo Spacing */
+  --spacing-container-padding: 24px;
+  --spacing-stack-sm: 8px;
+  --spacing-stack-md: 12px;
+}
