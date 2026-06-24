@@ -15,6 +15,10 @@ namespace MiniERP.API.Entities
         [ForeignKey("EmployeeId")]
         public Employee? Employee { get; set; }
 
+        public int? WorkShiftId { get; set; }
+        [ForeignKey("WorkShiftId")]
+        public WorkShift? WorkShift { get; set; }
+
         public DateTime OrderDate { get; set; }
 
         // 🎯 Bổ sung quy định kiểu dữ liệu tiền tệ vào đây

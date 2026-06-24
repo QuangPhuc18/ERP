@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore; // <-- Bắt buộc phải có dòng này để gọi EF Core
+using Microsoft.EntityFrameworkCore; // <-- Bắt buộc phải có dòng này để gọi EF Core
 using MiniERP.API.Entities;
 
 namespace MiniERP.API.Data
@@ -50,5 +50,6 @@ namespace MiniERP.API.Data
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<PurchaseOrderDetail> PurchaseOrderDetails { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<WorkShift> WorkShifts { get; set; }
     }
 }

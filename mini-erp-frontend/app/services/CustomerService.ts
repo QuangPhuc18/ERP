@@ -2,7 +2,7 @@ import httpAxios from "./httpAxios";
 
 export interface CustomerDTO {
   id: number;
-  customerCode: string;
+  customerCode?: string;
   fullName: string;
   email: string;
   phone: string;
@@ -18,7 +18,7 @@ const CustomerService = {
     const response = await httpAxios.put(`/Customer/${id}`, data);
     return response.data;
   },
-  create: async (data: Omit<CustomerDTO, "id" | "customerCode">) => {
+  create: async (data: Omit<CustomerDTO, "id">) => {
     const response = await httpAxios.post("/Customers", data);
     return response.data;
   },

@@ -19,6 +19,8 @@ namespace MiniERP.API.DTOs
     {
         // 🎯 Có thể null
         public int? CustomerId { get; set; }
+        
+        public int? WorkShiftId { get; set; }
 
         [Required]
         public decimal TotalAmount { get; set; }

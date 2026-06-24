@@ -10,7 +10,11 @@ export interface OrderDetailDTO {
 
 // 2. Kiểu dữ liệu khi gửi API tạo Đơn hàng mới
 export interface OrderCreateDTO {
-  customerId: number;
+  customerId: number | null;
+  totalAmount?: number;
+  amountPaid?: number;
+  paymentMethod?: string;
+  note?: string;
   details: OrderDetailDTO[];
 }
 

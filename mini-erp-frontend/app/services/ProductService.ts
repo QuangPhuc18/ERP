@@ -10,6 +10,7 @@ export interface ProductDTO {
   quantity: number;
   categoryId: number;
   categoryName?: string; // Dấu ? nghĩa là không bắt buộc phải gửi lên khi Thêm/Sửa
+  imageUrl?: string;
 }
 
 const ProductService = {

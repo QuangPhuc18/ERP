@@ -78,6 +78,7 @@ namespace MiniERP.API.Controllers
                 {
                     CustomerId = dto.CustomerId,
                     EmployeeId = employeeId,
+                    WorkShiftId = dto.WorkShiftId,
                     OrderDate = DateTime.Now,
                     AmountPaid = dto.AmountPaid,
                     PaymentMethod = dto.PaymentMethod,

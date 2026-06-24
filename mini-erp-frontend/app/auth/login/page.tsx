@@ -17,8 +17,18 @@ export default function AuthLoginPage() {
     setErrorMessage("");
 
     try {
-      await AuthService.login({ username, password });
-      window.location.href = "/dashboard"; 
+      const response = await AuthService.login({ username, password });
+      
+      // Lấy role từ localStorage sau khi login thành công
+      const role = localStorage.getItem("user_role");
+      
+      // Chuyển hướng dựa trên Role
+      if (role !== "admin") {
+        window.location.href = "/dashboard/pos"; 
+      } else {
+        window.location.href = "/dashboard"; 
+      }
+      
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {

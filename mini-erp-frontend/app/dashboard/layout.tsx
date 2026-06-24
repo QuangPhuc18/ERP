@@ -33,12 +33,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Bảng lương", path: "/dashboard/payroll", icon: "payments" }, 
     { name: "Quản lý Dự án", path: "/dashboard/projects", icon: "work" },
     { name: "Nhà cung cấp", path: "/dashboard/suppliers", icon: "local_shipping" },
+    { name: "Báo cáo cuối ngày", path: "/dashboard/reports", icon: "summarize" },
   ];
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F5F6FA]">
       
-      {/* 🚀 SIDEBAR TRÁI */}
+      {/* 🚀 SIDEBAR TRÁI (ẨN NẾU KHÔNG PHẢI ADMIN) */}
+      {userRole === "admin" && (
       <aside className="hidden md:flex flex-col w-[260px] h-full bg-white border-r border-gray-200 z-20 shadow-sm shrink-0 transition-all">
         {/* Logo */}
         <div className="h-16 flex flex-col justify-center px-6 border-b border-gray-100">
@@ -109,11 +111,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </aside>
+      )}
 
       {/* 🚀 MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         
-        {/* TopNavBar */}
+        {/* TopNavBar (ẨN NẾU KHÔNG PHẢI ADMIN) */}
+        {userRole === "admin" && (
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 z-10">
           <div className="flex items-center md:hidden">
             <h1 className="text-xl font-black text-orange-500">NexERP</h1>
@@ -133,9 +137,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
           </div>
         </header>
+        )}
 
         {/* Nội dung trang (Page Content) */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className={`flex-1 overflow-y-auto ${pathname === '/dashboard/pos' ? 'p-0' : 'p-6'}`}>
           {children}
         </main>
 
