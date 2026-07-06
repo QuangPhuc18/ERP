@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.API.Data;
@@ -26,6 +26,7 @@ namespace MiniERP.API.Controllers
         public async Task<IActionResult> GetAll()
         {
             var products = await _context.Products
+                .Where(p => p.IsActive) // 🎯 CHỈ LẤY SẢN PHẨM ĐANG KINH DOANH CHO POS / NHẬP KHO
                 .Include(p => p.Category)
                 .Select(p => new
                 {
@@ -68,6 +69,7 @@ namespace MiniERP.API.Controllers
                     p.CostPrice,
                     p.Quantity,
                     p.CategoryId,
+                    p.IsActive, // 🎯 Trả về trạng thái để hiển thị cho Admin
                     p.ImageUrl,
                     CategoryName = p.Category != null ? p.Category.Name : "Không có"
                 })
@@ -149,13 +151,30 @@ namespace MiniERP.API.Controllers
             bool hasOrderDetails = await _context.OrderDetails.AnyAsync(od => od.ProductId == id);
             if (hasOrderDetails)
             {
-                return BadRequest("Không thể xóa sản phẩm này vì lịch sử giao dịch bán hàng đã được lưu trữ trên hệ thống!");
+                return BadRequest("Không thể xóa sản phẩm này vì lịch sử giao dịch bán hàng đã được lưu trữ trên hệ thống! Hãy dùng tính năng Ngừng Kinh Doanh.");
             }
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
             return Ok("Xóa sản phẩm thành công!");
+        }
+
+        // 🎯 [NEW] BẬT / TẮT TRẠNG THÁI KINH DOANH
+        [HttpPut("{id}/toggle-status")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+                return NotFound("Không tìm thấy sản phẩm này!");
+
+            product.IsActive = !product.IsActive; // Đảo ngược trạng thái
+            _context.Products.Update(product);
+            await _context.SaveChangesAsync();
+
+            string message = product.IsActive ? "Đã MỞ KHÓA sản phẩm!" : "Đã KHÓA (Ngừng kinh doanh) sản phẩm!";
+            return Ok(new { Message = message, IsActive = product.IsActive });
         }
     }
 }

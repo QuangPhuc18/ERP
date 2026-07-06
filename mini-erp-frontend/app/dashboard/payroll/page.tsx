@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, startTransition } from "react";
 import axios from "axios";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import PayrollService from "../../services/PayrollService";
 import EmployeeService, { EmployeeDTO } from "../../services/EmployeeService";
 
@@ -11,20 +13,13 @@ interface PayrollFormData {
   year: number;
 }
 
-interface TimesheetFormData {
-  employeeId: number;
-  date: string;
-  checkInTime: string;
-  checkOutTime: string;
-  breakHours: number;
-}
-
 // 🎯 1. Định nghĩa chuẩn xác Interface cho Bảng lương
 interface PayrollRecord {
   id: number;
   employeeName: string;
   totalWorkDays: number;
   totalHours: number;
+  advanceDeducted: number;
   totalAmount: number;
   calculatedAt: string;
   isPaid: boolean;
@@ -58,16 +53,6 @@ export default function PayrollPage() {
     year: currentYear
   });
 
-  const [isTimesheetModalOpen, setIsTimesheetModalOpen] = useState(false);
-  const [isSubmittingTimesheet, setIsSubmittingTimesheet] = useState(false);
-  const [timesheetData, setTimesheetData] = useState<TimesheetFormData>({
-    employeeId: 0,
-    date: new Date().toISOString().split('T')[0],
-    checkInTime: "08:00",
-    checkOutTime: "17:00",
-    breakHours: 0
-  });
-
   const fetchEmployees = useCallback(async () => {
     try {
       const data = await EmployeeService.getAll();
@@ -90,6 +75,7 @@ export default function PayrollPage() {
         employeeName: item.employeeName ?? item.EmployeeName,
         totalWorkDays: item.totalWorkDays ?? item.TotalWorkDays ?? 0,
         totalHours: item.totalHours ?? item.TotalHours ?? 0,
+        advanceDeducted: item.advanceDeducted ?? item.AdvanceDeducted ?? 0,
         totalAmount: item.totalAmount ?? item.TotalAmount ?? 0,
         calculatedAt: item.calculatedAt ?? item.CalculatedAt,
         isPaid: item.isPaid ?? item.IsPaid ?? false
@@ -153,48 +139,43 @@ export default function PayrollPage() {
     }
   };
 
-  const handleTimesheetSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (timesheetData.employeeId === 0) { alert("Vui lòng chọn nhân viên!"); return; }
-
-    setIsSubmittingTimesheet(true);
-    try {
-      const fullCheckIn = `${timesheetData.date}T${timesheetData.checkInTime}:00`;
-      const fullCheckOut = `${timesheetData.date}T${timesheetData.checkOutTime}:00`;
-      
-      await PayrollService.submitTimesheet({
-        employeeId: timesheetData.employeeId,
-        date: timesheetData.date,
-        checkInTime: fullCheckIn,
-        checkOutTime: fullCheckOut,
-        breakHours: timesheetData.breakHours
-      });
-      setIsTimesheetModalOpen(false);
-      alert("Chấm công thành công!");
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        alert(`Lỗi: ${err.response?.data || "Không thể chấm công"}`);
-      } else {
-        alert("Lỗi hệ thống");
-      }
-    } finally {
-      setIsSubmittingTimesheet(false);
-    }
-  };
-
   return (
     <>
+      {/* TABS NAVIGATION */}
+      <div className="flex border-b border-gray-200 mb-6 mt-2">
+        <Link 
+          href="/dashboard/timesheets" 
+          className="px-6 py-3 font-semibold text-sm border-b-2 transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+        >
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">schedule</span>
+            Bảng Công
+          </div>
+        </Link>
+        <Link 
+          href="/dashboard/payroll" 
+          className="px-6 py-3 font-semibold text-sm border-b-2 transition-colors border-orange-500 text-orange-600"
+        >
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">payments</span>
+            Bảng Lương
+          </div>
+        </Link>
+        <Link 
+          href="/dashboard/advances" 
+          className="px-6 py-3 font-semibold text-sm border-b-2 transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+        >
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">request_quote</span>
+            Tạm Ứng
+          </div>
+        </Link>
+      </div>
+
       {/* HEADER */}
       <div className="mb-6 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
         <h2 className="text-xl font-bold text-gray-800">Quản lý Bảng Lương</h2>
         <div className="flex gap-3">
-          <button 
-            onClick={() => setIsTimesheetModalOpen(true)} 
-            className="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-sm">schedule</span>
-            Chấm công hàng ngày
-          </button>
           <button 
             onClick={() => setIsModalOpen(true)} 
             className="bg-[#10B981] text-white px-5 py-2 rounded-lg font-semibold hover:bg-green-600 transition shadow-sm flex items-center gap-2"
@@ -237,7 +218,8 @@ export default function PayrollPage() {
                 <th className="p-4 font-semibold">Mã ID</th>
                 <th className="p-4 font-semibold">Họ và Tên</th>
                 <th className="p-4 font-semibold">Thời gian làm việc</th>
-                <th className="p-4 font-semibold text-right">Lương thực nhận</th>
+                <th className="p-4 font-semibold text-right">Khấu trừ tạm ứng</th>
+                <th className="p-4 font-semibold text-right">Thực nhận</th>
                 <th className="p-4 font-semibold text-center">Trạng thái</th>
               </tr>
             </thead>
@@ -250,6 +232,9 @@ export default function PayrollPage() {
                     {record.totalWorkDays > 0 && <span className="block">{record.totalWorkDays} ngày</span>}
                     {record.totalHours > 0 && <span className="block text-blue-600">{record.totalHours} giờ</span>}
                     {record.totalWorkDays === 0 && record.totalHours === 0 && <span>0</span>}
+                  </td>
+                  <td className="p-4 text-right font-medium text-amber-600">
+                    {record.advanceDeducted > 0 ? `- ${record.advanceDeducted.toLocaleString('vi-VN')} đ` : '-'}
                   </td>
                   <td className="p-4 text-right font-bold text-[#10B981]">
                     {record.totalAmount.toLocaleString('vi-VN')} đ
@@ -315,56 +300,6 @@ export default function PayrollPage() {
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2 border rounded-lg font-medium text-gray-600 hover:bg-gray-50 transition">Hủy bỏ</button>
                 <button type="submit" disabled={isSubmitting} className="px-5 py-2 bg-[#10B981] text-white rounded-lg font-medium hover:bg-green-600 transition disabled:opacity-50">
                     {isSubmitting ? "Đang tính..." : "Xác nhận tính lương"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL CHẤM CÔNG */}
-      {isTimesheetModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h3 className="font-bold text-lg mb-4 text-gray-800">Chấm công hàng ngày</h3>
-            <form onSubmit={handleTimesheetSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700">Nhân viên <span className="text-red-500">*</span></label>
-                <select 
-                  value={timesheetData.employeeId} 
-                  onChange={(e) => setTimesheetData({...timesheetData, employeeId: Number(e.target.value)})}
-                  className="w-full p-2.5 border rounded-lg outline-none focus:border-blue-600"
-                >
-                  <option value={0}>-- Chọn nhân viên --</option>
-                  {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.fullName}</option>)}
-                </select>
-              </div>
-              
-              <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">Ngày làm việc</label>
-                  <input type="date" value={timesheetData.date} onChange={(e) => setTimesheetData({...timesheetData, date: e.target.value})} className="w-full p-2.5 border rounded-lg outline-none focus:border-blue-600" />
-              </div>
-
-              <div className="flex gap-4">
-                <div className="w-1/2">
-                    <label className="block text-sm font-medium mb-1 text-gray-700">Giờ vào (Check-in)</label>
-                    <input type="text" placeholder="VD: 08:00" pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$" title="Nhập theo định dạng 24h (VD: 08:00 hoặc 14:30)" required value={timesheetData.checkInTime} onChange={(e) => setTimesheetData({...timesheetData, checkInTime: e.target.value})} className="w-full p-2.5 border rounded-lg outline-none focus:border-blue-600" />
-                </div>
-                <div className="w-1/2">
-                    <label className="block text-sm font-medium mb-1 text-gray-700">Giờ ra (Check-out)</label>
-                    <input type="text" placeholder="VD: 17:00" pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$" title="Nhập theo định dạng 24h (VD: 08:00 hoặc 17:00)" required value={timesheetData.checkOutTime} onChange={(e) => setTimesheetData({...timesheetData, checkOutTime: e.target.value})} className="w-full p-2.5 border rounded-lg outline-none focus:border-blue-600" />
-                </div>
-              </div>
-              
-              <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-700">Thời gian nghỉ giữa ca (Giờ)</label>
-                  <input type="number" step="0.5" min="0" value={timesheetData.breakHours} onChange={(e) => setTimesheetData({...timesheetData, breakHours: Number(e.target.value)})} className="w-full p-2.5 border rounded-lg outline-none focus:border-blue-600" placeholder="VD: 1.5 hoặc 2" />
-              </div>
-              
-              <div className="flex justify-end gap-3 pt-4 border-t mt-6">
-                <button type="button" onClick={() => setIsTimesheetModalOpen(false)} className="px-5 py-2 border rounded-lg font-medium text-gray-600 hover:bg-gray-50 transition">Hủy bỏ</button>
-                <button type="submit" disabled={isSubmittingTimesheet} className="px-5 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50">
-                    {isSubmittingTimesheet ? "Đang lưu..." : "Lưu chấm công"}
                 </button>
               </div>
             </form>

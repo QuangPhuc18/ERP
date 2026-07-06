@@ -14,7 +14,6 @@ export interface PurchaseOrderCreateDTO {
   details: PurchaseOrderDetailDTO[];
 }
 
-// 3. Dữ liệu nhận về khi lấy Danh sách phiếu nhập
 export interface PurchaseOrderDTO {
   id: number;
   supplierName?: string;
@@ -24,16 +23,37 @@ export interface PurchaseOrderDTO {
   details?: PurchaseOrderDetailDTO[];
 }
 
+export interface PagedResult<T> {
+  items: T[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+}
+
 const PurchaseOrderService = {
   // Lấy danh sách toàn bộ phiếu nhập kho
-  getAll: async (): Promise<PurchaseOrderDTO[]> => {
-    const response = await httpAxios.get("/PurchaseOrders");
+  getAll: async (page: number = 1, pageSize: number = 20, month?: number, year?: number): Promise<PagedResult<PurchaseOrderDTO>> => {
+    let url = `/PurchaseOrders?page=${page}&pageSize=${pageSize}`;
+    if (month && year) url += `&month=${month}&year=${year}`;
+    const response = await httpAxios.get(url);
     return response.data;
   },
 
-  // Gửi request tạo phiếu nhập (C# sẽ tự động cộng tồn kho khi nhận được)
-  create: async (data: PurchaseOrderCreateDTO): Promise<PurchaseOrderDTO> => {
+  // 2. Lập phiếu nhập kho nháp (Pending)
+  create: async (data: PurchaseOrderCreateDTO): Promise<{ message: string, purchaseOrderId: number, totalAmount: number }> => {
     const response = await httpAxios.post("/PurchaseOrders", data);
+    return response.data;
+  },
+
+  // 3. Sửa phiếu nhập kho nháp (Pending)
+  update: async (id: number, data: PurchaseOrderCreateDTO): Promise<{ message: string, totalAmount: number }> => {
+    const response = await httpAxios.put(`/PurchaseOrders/${id}`, data);
+    return response.data;
+  },
+
+  // 4. Duyệt phiếu nhập kho (Completed)
+  confirm: async (id: number): Promise<{ message: string }> => {
+    const response = await httpAxios.post(`/PurchaseOrders/${id}/Confirm`);
     return response.data;
   }
 };

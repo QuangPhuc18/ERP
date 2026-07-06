@@ -11,6 +11,7 @@ export interface ProductDTO {
   categoryId: number;
   categoryName?: string; // Dấu ? nghĩa là không bắt buộc phải gửi lên khi Thêm/Sửa
   imageUrl?: string;
+  isActive?: boolean; // 🎯 Trạng thái ngừng kinh doanh
 }
 
 const ProductService = {
@@ -35,6 +36,12 @@ const ProductService = {
   // 4. Xóa sản phẩm
   delete: async (id: number): Promise<void> => {
     await httpAxios.delete(`/Products/${id}`);
+  },
+
+  // 🎯 Bật / Tắt trạng thái ngừng kinh doanh
+  toggleStatus: async (id: number): Promise<{ message: string, isActive: boolean }> => {
+    const response = await httpAxios.put(`/Products/${id}/toggle-status`);
+    return response.data;
   }
 };
 

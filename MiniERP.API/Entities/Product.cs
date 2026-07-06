@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MiniERP.API.Entities
@@ -26,6 +26,8 @@ namespace MiniERP.API.Entities
 
         // 🎯 ĐÂY CHÍNH LÀ CỘT BẠN ĐANG THIẾU
         public string? ImageUrl { get; set; }
+
+        public bool IsActive { get; set; } = true; // Trạng thái Đang Kinh Doanh / Ngừng Kinh Doanh
 
         // Khóa ngoại liên kết với Bảng Category
         public int CategoryId { get; set; }

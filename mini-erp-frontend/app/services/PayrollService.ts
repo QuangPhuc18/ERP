@@ -37,6 +37,26 @@ const PayrollService = {
   markAsPaid: async (id: number) => {
     const response = await httpAxios.put(`/Payroll/${id}/pay`);
     return response.data;
+  },
+  
+  getTimesheetsSummary: async (month: number, year: number) => {
+    const response = await httpAxios.get(`/Payroll/timesheets-summary?month=${month}&year=${year}`);
+    return response.data;
+  },
+
+  getTimesheetLogs: async (employeeId: number, month: number, year: number) => {
+    const response = await httpAxios.get(`/Payroll/timesheet-logs?employeeId=${employeeId}&month=${month}&year=${year}`);
+    return response.data;
+  },
+
+  getAdvances: async (month: number, year: number) => {
+    const response = await httpAxios.get(`/Payroll/advances?month=${month}&year=${year}`);
+    return response.data;
+  },
+
+  createAdvance: async (data: any) => {
+    const response = await httpAxios.post(`/Payroll/advances`, data);
+    return response.data;
   }
 };
 

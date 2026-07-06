@@ -15,7 +15,9 @@ namespace MiniERP.API.Data
         public DbSet<Project> Projects { get; set; }
         public DbSet<EmployeeProject> EmployeeProjects { get; set; }
         public DbSet<Timesheet> Timesheets { get; set; }
+        public DbSet<SupplierPayment> SupplierPayments { get; set; }
         public DbSet<Salary> Salaries { get; set; }
+        public DbSet<SalaryAdvance> SalaryAdvances { get; set; }
         // CẤU HÌNH FLUENT API
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -39,6 +41,13 @@ namespace MiniERP.API.Data
                 .HasOne(e => e.Account)
                 .WithOne(a => a.Employee)
                 .HasForeignKey<Account>(a => a.EmployeeId);
+
+            // 3. Khắc phục lỗi Cascade delete của SupplierPayment
+            modelBuilder.Entity<SupplierPayment>()
+                .HasOne(sp => sp.Supplier)
+                .WithMany()
+                .HasForeignKey(sp => sp.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Customer> Customers { get; set; }
@@ -51,5 +60,9 @@ namespace MiniERP.API.Data
         public DbSet<PurchaseOrderDetail> PurchaseOrderDetails { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<WorkShift> WorkShifts { get; set; }
+        public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
+        public DbSet<InventoryAdjustment> InventoryAdjustments { get; set; }
+        public DbSet<StockTake> StockTakes { get; set; }
+        public DbSet<StockTakeDetail> StockTakeDetails { get; set; }
     }
 }

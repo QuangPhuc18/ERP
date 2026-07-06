@@ -120,6 +120,22 @@ namespace MiniERP.API.Controllers
 
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
+
+                // Ghi nhận lịch sử xuất kho (SALE)
+                foreach (var detail in order.OrderDetails)
+                {
+                    _context.InventoryTransactions.Add(new InventoryTransaction
+                    {
+                        TransactionDate = DateTime.Now,
+                        ProductId = detail.ProductId,
+                        TransactionType = "SALE",
+                        Quantity = -detail.Quantity, // Trừ xuất kho
+                        ReferenceId = order.Id,
+                        Note = "Xuất kho bán hàng POS"
+                    });
+                }
+                await _context.SaveChangesAsync();
+                
                 await transaction.CommitAsync();
 
                 return Ok(new

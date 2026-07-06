@@ -35,3 +35,141 @@
   --spacing-stack-sm: 8px;
   --spacing-stack-md: 12px;
 }
+@theme {
+  --color-sf-secondary-fixed: #ffdcc4;
+  --color-sf-inverse-surface: #2f3130;
+  --color-sf-on-primary-fixed: #002201;
+  --color-sf-surface-variant: #e3e2e0;
+  --color-sf-surface-container-lowest: #ffffff;
+  --color-sf-surface-tint: #3b6934;
+  --color-sf-tertiary-fixed-dim: #edc157;
+  --color-sf-on-tertiary-container: #e9bd54;
+  --color-sf-surface: #faf9f7;
+  --color-sf-on-tertiary: #ffffff;
+  --color-sf-on-primary: #ffffff;
+  --color-sf-surface-bright: #faf9f7;
+  --color-sf-on-primary-fixed-variant: #23501e;
+  --color-sf-error: #ba1a1a;
+  --color-sf-surface-container: #efeeec;
+  --color-sf-secondary-container: #ffab69;
+  --color-sf-outline: #72796e;
+  --color-sf-on-tertiary-fixed-variant: #5b4300;
+  --color-sf-error-container: #ffdad6;
+  --color-sf-on-surface-variant: #42493e;
+  --color-sf-on-secondary-fixed: #2f1400;
+  --color-sf-inverse-on-surface: #f1f1ef;
+  --color-sf-surface-container-high: #e9e8e6;
+  --color-sf-surface-container-low: #f4f3f1;
+  --color-sf-surface-container-highest: #e3e2e0;
+  --color-sf-on-background: #1a1c1b;
+  --color-sf-on-secondary-container: #783d01;
+  --color-sf-on-surface: #1a1c1b;
+  --color-sf-outline-variant: #c2c9bb;
+  --color-sf-on-secondary: #ffffff;
+  --color-sf-primary-container: #2d5a27;
+  --color-sf-on-primary-container: #9dd090;
+  --color-sf-surface-dim: #dadad8;
+  --color-sf-secondary: #8e4e14;
+  --color-sf-primary: #154212;
+  --color-sf-on-error: #ffffff;
+  --color-sf-on-secondary-fixed-variant: #6f3800;
+  --color-sf-tertiary-container: #664c00;
+  --color-sf-tertiary-fixed: #ffdf9b;
+  --color-sf-on-tertiary-fixed: #251a00;
+  --color-sf-inverse-primary: #a1d494;
+  --color-sf-secondary-fixed-dim: #ffb780;
+  --color-sf-tertiary: #4a3600;
+  --color-sf-primary-fixed: #bcf0ae;
+  --color-sf-primary-fixed-dim: #a1d494;
+  --color-sf-background: #faf9f7;
+  --color-sf-on-error-container: #93000a;
+
+  --font-sf-display: "Syne", sans-serif;
+  --font-sf-body: "Work Sans", sans-serif;
+}
+
+/* Storefront Tonal Layering */
+.sf-card-level-1 {
+    background-color: #FFFFFF;
+    border: 1px solid #E0DDD7;
+    transition: box-shadow 0.3s ease;
+}
+.sf-card-level-1:hover {
+    box-shadow: 0 10px 25px -5px rgba(21, 66, 18, 0.1);
+}
+
+
+@theme {
+  --text-sf-display-lg: 48px;
+  --text-sf-display-lg--line-height: 52px;
+  --text-sf-display-lg--letter-spacing: -0.02em;
+  --text-sf-display-lg--font-weight: 800;
+  
+  --text-sf-display-lg-mobile: 36px;
+  --text-sf-display-lg-mobile--line-height: 40px;
+  --text-sf-display-lg-mobile--letter-spacing: -0.02em;
+  --text-sf-display-lg-mobile--font-weight: 800;
+
+  --text-sf-headline-md: 24px;
+  --text-sf-headline-md--line-height: 32px;
+  --text-sf-headline-md--font-weight: 700;
+  
+  --text-sf-body-lg: 18px;
+  --text-sf-body-lg--line-height: 28px;
+  --text-sf-body-lg--font-weight: 400;
+
+  --text-sf-body-md: 16px;
+  --text-sf-body-md--line-height: 24px;
+  --text-sf-body-md--font-weight: 400;
+
+  --text-sf-label-caps: 12px;
+  --text-sf-label-caps--line-height: 16px;
+  --text-sf-label-caps--letter-spacing: 0.05em;
+  --text-sf-label-caps--font-weight: 600;
+}
+
+
+.sf-input-underline {
+    border: none !important;
+    border-bottom: 1px solid var(--color-sf-outline-variant) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    padding: 8px 0 !important;
+    font-family: var(--font-sf-body) !important;
+    font-size: 16px !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.sf-input-underline:focus {
+    outline: none !important;
+    border-bottom-color: var(--color-sf-primary-container) !important;
+    border-bottom-width: 2px !important;
+    box-shadow: none !important;
+}
+.sf-custom-radio {
+    appearance: none !important;
+    width: 16px !important;
+    height: 16px !important;
+    border: 1px solid var(--color-sf-outline-variant) !important;
+    border-radius: 50% !important;
+    outline: none !important;
+    margin-right: 12px !important;
+    cursor: pointer !important;
+    position: relative !important;
+    background: transparent !important;
+}
+.sf-custom-radio:checked {
+    border-color: var(--color-sf-primary-container) !important;
+}
+.sf-custom-radio:checked::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    background-color: var(--color-sf-primary-container) !important;
+}
+

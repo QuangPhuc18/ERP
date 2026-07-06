@@ -153,6 +153,18 @@ export default function ProductsPage() {
     }
   };
 
+  const handleToggleStatus = async (id: number) => {
+    if (window.confirm("Bạn muốn đổi trạng thái Kinh Doanh của sản phẩm này?")) {
+      try {
+        const res = await ProductService.toggleStatus(id);
+        alert(res.message);
+        loadData();
+      } catch (error) {
+        alert("Lỗi khi thay đổi trạng thái!");
+      }
+    }
+  };
+
   return (
     <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 animate-fade-in-up -m-6 min-h-screen">
       <div className="flex justify-between items-center mb-6">
@@ -189,10 +201,10 @@ export default function ProductsPage() {
             ) : products.length === 0 ? (
               <tr><td colSpan={isAdmin ? 7 : 6} className="text-center py-8 text-gray-400">Chưa có sản phẩm nào trên hệ thống.</td></tr>
             ) : products.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
+              <tr key={product.id} className={`transition-colors ${product.isActive !== false ? "hover:bg-gray-50/50" : "bg-red-50/30 opacity-70"}`}>
                 {/* Cột hiển thị hình ảnh sản phẩm trong danh sách */}
                 <td className="px-5 py-3">
-                  <div className="w-12 h-12 rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden shadow-sm">
+                  <div className={`w-12 h-12 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shadow-sm ${product.isActive !== false ? 'bg-white' : 'bg-red-100 grayscale'}`}>
                     {product.imageUrl ? (
                       <img src={product.imageUrl} alt={product.productName} className="w-full h-full object-cover" />
                     ) : (
@@ -200,7 +212,12 @@ export default function ProductsPage() {
                     )}
                   </div>
                 </td>
-                <td className="px-5 py-3 font-medium text-gray-600">{product.productCode}</td>
+                <td className="px-5 py-3 font-medium text-gray-600 flex flex-col gap-1 items-start justify-center min-h-[72px]">
+                  <span>{product.productCode}</span>
+                  {product.isActive === false && (
+                    <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded text-[10px] font-bold border border-red-200">NGỪNG BÁN</span>
+                  )}
+                </td>
                 <td className="px-5 py-3 text-gray-800 font-bold">{product.productName}</td>
                 <td className="px-5 py-3 text-gray-500">
                   <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold">{product.categoryName || "Chưa rõ"}</span>
@@ -212,8 +229,11 @@ export default function ProductsPage() {
                   </span>
                 </td>
                 {isAdmin && (
-                  <td className="px-5 py-3 text-center space-x-2">
+                  <td className="px-5 py-3 text-center space-x-1">
                     <button onClick={() => handleOpenEdit(product)} className="text-blue-500 hover:bg-blue-50 p-1.5 rounded-lg transition-colors"><span className="material-symbols-outlined text-lg">edit</span></button>
+                    <button onClick={() => handleToggleStatus(product.id)} className={`${product.isActive !== false ? 'text-amber-500 hover:bg-amber-50' : 'text-emerald-500 hover:bg-emerald-50'} p-1.5 rounded-lg transition-colors`} title={product.isActive !== false ? 'Ngừng kinh doanh' : 'Mở khóa lại'}>
+                      <span className="material-symbols-outlined text-lg">{product.isActive !== false ? 'lock' : 'lock_open'}</span>
+                    </button>
                     <button onClick={() => handleDelete(product.id)} className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"><span className="material-symbols-outlined text-lg">delete</span></button>
                   </td>
                 )}
@@ -264,10 +284,7 @@ export default function ProductsPage() {
                   <input type="number" min="0" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-orange-500 transition-all" value={formData.price || ""} onChange={(e) => setFormData({...formData, price: e.target.value === '' ? 0 : Number(e.target.value)})} />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tồn kho</label>
-                  <input type="number" min="0" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-orange-500 transition-all" value={formData.quantity || ""} onChange={(e) => setFormData({...formData, quantity: e.target.value === '' ? 0 : Number(e.target.value)})} disabled={!!editingId} title={editingId ? "Số kho được cập nhật tự động qua phiếu nhập/xuất" : ""} />
-                </div>
+                {/* Đã gỡ ô nhập Tồn Kho để đảm bảo đúng quy trình ERP (Kho phải nhập qua PO) */}
               </div>
 
               {/* 🎯 Cột phải: Chọn File ảnh và Xem trước */}

@@ -18,8 +18,11 @@ export const Topbar: React.FC<TopbarProps> = ({ currentTime, searchQuery, setSea
           <span className="text-[10px] text-orange-600 font-bold bg-orange-50 px-2.5 py-1 rounded-full uppercase tracking-widest border border-orange-100/50">Quầy #01</span>
         </div>
         <div className="flex items-center gap-2 lg:hidden">
-          <button onClick={() => setShowEndShiftModal(true)} className="p-2 bg-gray-900 text-white rounded-lg">
+          <button onClick={() => setShowEndShiftModal(true)} className="p-2 bg-gray-900 text-white rounded-lg" title="Đóng ca">
             <span className="material-symbols-outlined text-[18px] block">lock_clock</span>
+          </button>
+          <button onClick={() => AuthService.logout()} className="p-2 bg-red-50 text-red-600 rounded-lg border border-red-100" title="Đăng xuất">
+            <span className="material-symbols-outlined text-[18px] block">logout</span>
           </button>
           <span className="text-sm font-semibold text-gray-400 tabular-nums bg-gray-50/50 px-3 py-1.5 rounded-lg border border-gray-100/50">{currentTime}</span>
         </div>
