@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization; // Khai báo thêm thư viện phân quyền
@@ -102,6 +102,80 @@ namespace MiniERP.API.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        // ==========================================================
+        // 3. API ĐĂNG KÝ CHO KHÁCH HÀNG (STOREFRONT)
+        // ==========================================================
+        public class CustomerRegisterDTO
+        {
+            public string FullName { get; set; } = null!;
+            public string Phone { get; set; } = null!;
+            public string Password { get; set; } = null!;
+        }
+
+        [HttpPost("customer/register")]
+        public async Task<IActionResult> CustomerRegister([FromBody] CustomerRegisterDTO request)
+        {
+            if (await _context.Customers.AnyAsync(c => c.Phone == request.Phone))
+                return BadRequest("Số điện thoại này đã được đăng ký!");
+
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            var customer = new Customer
+            {
+                CustomerCode = "CUS_" + DateTime.Now.Ticks.ToString().Substring(8),
+                FullName = request.FullName,
+                Phone = request.Phone,
+                PasswordHash = passwordHash
+            };
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Đăng ký thành công!" });
+        }
+
+        // ==========================================================
+        // 4. API ĐĂNG NHẬP CHO KHÁCH HÀNG (STOREFRONT)
+        // ==========================================================
+        public class CustomerLoginDTO
+        {
+            public string Phone { get; set; } = null!;
+            public string Password { get; set; } = null!;
+        }
+
+        [HttpPost("customer/login")]
+        public async Task<IActionResult> CustomerLogin([FromBody] CustomerLoginDTO login)
+        {
+            var customer = await _context.Customers.SingleOrDefaultAsync(c => c.Phone == login.Phone);
+
+            if (customer == null || customer.PasswordHash == null || !BCrypt.Net.BCrypt.Verify(login.Password, customer.PasswordHash))
+            {
+                return Unauthorized(new { Message = "Số điện thoại hoặc mật khẩu không chính xác!" });
+            }
+
+            var jwtSettings = _configuration.GetSection("Jwt");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, customer.Phone),
+                new Claim(ClaimTypes.Role, "customer"),
+                new Claim("CustomerId", customer.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddHours(24),
+                signingCredentials: creds
+            );
+            
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return Ok(new { Token = tokenString, Message = "Đăng nhập thành công!", CustomerName = customer.FullName });
         }
     }
 }

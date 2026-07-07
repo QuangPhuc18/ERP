@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.API.Data;
@@ -33,7 +33,11 @@ namespace MiniERP.API.Controllers
             var category = await _context.Categories.FindAsync(id);
             if (category == null)
                 return NotFound();
+            
             category.Name = dto.Name;
+            category.Description = dto.Description;
+            category.ImageUrl = dto.ImageUrl;
+
             await _context.SaveChangesAsync();
             return Ok(category);
         }
@@ -42,7 +46,12 @@ namespace MiniERP.API.Controllers
         [Authorize(Roles = "Admin,admin")]
         public async Task<IActionResult> Create([FromBody] CategoryDTO dto)
         {
-            var category = new Category { Name = dto.Name };
+            var category = new Category 
+            { 
+                Name = dto.Name,
+                Description = dto.Description,
+                ImageUrl = dto.ImageUrl
+            };
             _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 

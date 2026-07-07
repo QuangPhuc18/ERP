@@ -64,5 +64,7 @@ namespace MiniERP.API.Data
         public DbSet<InventoryAdjustment> InventoryAdjustments { get; set; }
         public DbSet<StockTake> StockTakes { get; set; }
         public DbSet<StockTakeDetail> StockTakeDetails { get; set; }
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<Banner> Banners { get; set; }
     }
 }

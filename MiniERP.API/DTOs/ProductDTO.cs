@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace MiniERP.API.DTOs
 {
@@ -23,5 +23,9 @@ namespace MiniERP.API.DTOs
 
         // 🎯 Bổ sung trường lưu đường dẫn Hình ảnh (Có thể để trống)
         public string? ImageUrl { get; set; }
+
+        public string? Description { get; set; }
+        
+        public bool IsNew { get; set; }
     }
 }

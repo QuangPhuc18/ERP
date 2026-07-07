@@ -11,6 +11,8 @@ export interface ProductDTO {
   categoryId: number;
   categoryName?: string; // Dấu ? nghĩa là không bắt buộc phải gửi lên khi Thêm/Sửa
   imageUrl?: string;
+  description?: string;
+  isNew?: boolean;
   isActive?: boolean; // 🎯 Trạng thái ngừng kinh doanh
 }
 

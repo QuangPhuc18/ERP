@@ -17,6 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     "Bán Hàng & CRM": false,
     "Kho & Công Nợ": false,
     "Nhân Sự & Nội Bộ": false,
+    "Quản Trị Nội Dung": false,
     "Quản Trị: Mua Hàng": false,
     "Quản Trị: Kho & Hệ Thống": false,
   });
@@ -55,6 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: "Nhà cung cấp", path: "/dashboard/suppliers", icon: "local_shipping" },
       ]
     },
+   
     {
       title: "Nhân Sự & Nội Bộ",
       icon: "badge",
@@ -85,7 +87,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: "Nhật ký Tồn kho", path: "/dashboard/inventory-transactions", icon: "history" },
         { name: "Cấp tài khoản mới", path: "/auth/register", icon: "admin_panel_settings" },
       ]
-    }
+    },
+     {
+      title: "Quản Trị Người dùng",
+      icon: "web",
+      items: [
+        { name: "Quản lý Banner", path: "/dashboard/banners", icon: "view_carousel" },
+        { name: "Bài viết / Tạp chí", path: "/dashboard/posts", icon: "article" },
+      ]
+    },
   ];
 
   return (

@@ -34,6 +34,12 @@ namespace MiniERP.API.Entities
 
         public string? Note { get; set; } // Ghi chú đơn hàng
 
+        // 🎯 Thêm thông tin giao hàng cho Storefront
+        public string? ShippingAddress { get; set; } 
+        public string? ShippingMethod { get; set; } 
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal ShippingFee { get; set; } = 0;
+
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
     }
 }

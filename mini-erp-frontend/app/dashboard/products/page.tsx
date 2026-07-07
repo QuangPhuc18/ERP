@@ -23,6 +23,8 @@ export default function ProductsPage() {
     quantity: 0,
     categoryId: 0,
     imageUrl: "", // 🎯 Bổ sung trường dữ liệu ảnh
+    description: "",
+    isNew: false,
   });
 
   const loadData = useCallback(async () => {
@@ -97,6 +99,8 @@ export default function ProductsPage() {
       // 🎯 SỬA LỖI DANH MỤC TRỐNG: Tự chọn ID đầu tiên thay vì số 0
       categoryId: categories.length > 0 ? categories[0].id : 0,
       imageUrl: "",
+      description: "",
+      isNew: true,
     });
     setModalError("");
     setIsModalOpen(true);
@@ -116,6 +120,8 @@ export default function ProductsPage() {
       quantity: product.quantity || 0,
       categoryId: safeCategoryId,
       imageUrl: product.imageUrl || "", // Nhận ảnh từ DB đổ lên form sửa
+      description: product.description || "",
+      isNew: product.isNew || false,
     });
     setModalError("");
     setIsModalOpen(true);
@@ -246,13 +252,13 @@ export default function ProductsPage() {
       {/* ── MODAL FORM THÊM / SỬA ── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-[650px] overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-2xl shadow-2xl w-[900px] overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
               <h2 className="text-lg font-black text-gray-800">{editingId ? "Cập nhật Sản phẩm" : "Thêm Sản phẩm Mới"}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center transition-colors"><span className="material-symbols-outlined">close</span></button>
             </div>
             
-            <div className="p-6 space-y-4 overflow-y-auto flex-1 grid grid-cols-2 gap-x-5 gap-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto flex-1 grid grid-cols-3 gap-x-5 gap-y-4">
               {modalError && <p className="col-span-2 text-red-500 text-sm bg-red-50 p-3 rounded-xl border border-red-100">{modalError}</p>}
               
               {/* Cột trái: Form nhập văn bản */}
@@ -284,7 +290,25 @@ export default function ProductsPage() {
                   <input type="number" min="0" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-orange-500 transition-all" value={formData.price || ""} onChange={(e) => setFormData({...formData, price: e.target.value === '' ? 0 : Number(e.target.value)})} />
                 </div>
 
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1 flex items-center gap-2">
+                    <input type="checkbox" className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500" checked={formData.isNew} onChange={(e) => setFormData({...formData, isNew: e.target.checked})} />
+                    Đánh dấu là Sản phẩm Mới
+                  </label>
+                </div>
+
                 {/* Đã gỡ ô nhập Tồn Kho để đảm bảo đúng quy trình ERP (Kho phải nhập qua PO) */}
+              </div>
+
+              {/* 🎯 Cột giữa: Nhập Mô tả */}
+              <div className="flex flex-col h-full">
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Mô tả sản phẩm</label>
+                <textarea 
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-orange-500 transition-all flex-1 resize-none" 
+                  placeholder="Nhập mô tả chi tiết sản phẩm để hiển thị trên Storefront..."
+                  value={formData.description} 
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                ></textarea>
               </div>
 
               {/* 🎯 Cột phải: Chọn File ảnh và Xem trước */}

@@ -27,6 +27,10 @@ namespace MiniERP.API.Entities
         // 🎯 ĐÂY CHÍNH LÀ CỘT BẠN ĐANG THIẾU
         public string? ImageUrl { get; set; }
 
+        public string? Description { get; set; } // Thêm mô tả
+        public int ViewCount { get; set; } = 0; // Lượt xem
+        public bool IsNew { get; set; } = false; // Sản phẩm mới
+
         public bool IsActive { get; set; } = true; // Trạng thái Đang Kinh Doanh / Ngừng Kinh Doanh
 
         // Khóa ngoại liên kết với Bảng Category

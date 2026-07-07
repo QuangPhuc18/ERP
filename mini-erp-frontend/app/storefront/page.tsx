@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "./CartContext";
 import httpAxios from "../services/httpAxios";
+import HeroBanner from "./components/HeroBanner";
+import CategoryGrid from "./components/CategoryGrid";
 
 interface Product {
   id: number;
@@ -11,6 +13,13 @@ interface Product {
   price: number;
   imageUrl: string;
   categoryName: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  description?: string;
+  imageUrl?: string;
 }
 
 export default function StorefrontHomePage() {
@@ -24,81 +33,18 @@ export default function StorefrontHomePage() {
         setProducts(res.data);
       })
       .catch((err) => {
-        console.error("Lỗi lấy sản phẩm:", err);
+        console.error("Lỗi lấy dữ liệu:", err);
       })
       .finally(() => setLoading(false));
   }, []);
 
   return (
     <>
-      {/* Hero/Intro (Magazine Style) */}
-      <section className="max-w-7xl mx-auto px-5 md:px-16 py-12 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center min-h-[70vh]">
-        <div className="lg:col-span-5 flex flex-col gap-6 z-10">
-          <h1 className="font-sf-display text-5xl font-extrabold text-sf-on-surface leading-tight tracking-tight">
-            Curated freshness, delivered daily.
-          </h1>
-          <p className="font-sf-body text-lg text-sf-on-surface-variant max-w-md">
-            Experience the season best produce, hand-selected for culinary enthusiasts. Authenticity in every bite.
-          </p>
-          <div className="mt-4">
-            <Link 
-              href="#essentials"
-              className="inline-flex items-center justify-center px-8 py-4 bg-sf-primary text-sf-on-primary hover:bg-sf-on-primary-fixed-variant transition-colors rounded font-sf-body text-xs font-semibold uppercase tracking-widest"
-            >
-              Shop the Season
-            </Link>
-          </div>
-        </div>
-        <div className="lg:col-span-7 relative h-[50vh] lg:h-[80vh] w-full">
-          <div 
-            className="absolute inset-0 bg-cover bg-center rounded-lg sf-card-level-1 overflow-hidden" 
-            style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuANM2a5DVdVMMGYD9AtGBRcW9tlYHIL3EsqFMwMsv0egU9eP37voXuYJT5JXjuygApgmUVyx0cT7fuLc0WKnWw9u6Elkb4c7Lv8s15CRbWedlzSK2cjDwAMJl3B6RZdPH37zI1U5XPGc770Z4g-650in60zuhkBH1kTGxQt3MUaoti87mFJOypbADAvxMDbncjYYk5lbj-JMWwi6RHjD8Lmv6PkGyPRvntubrb52ccQWfKGUsus0J8A')" }}
-          ></div>
-        </div>
-      </section>
+      {/* Hero/Intro (Magazine Style) Đã được tách riêng để load tự động từ Database */}
+      <HeroBanner />
 
       {/* Category Grid (Bento/Asymmetrical) */}
-      <section className="max-w-7xl mx-auto px-5 md:px-16 py-12">
-        <h2 className="font-sf-display text-2xl font-bold mb-8">Aisles</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[250px]">
-          {/* Category 1: Rau củ */}
-          <Link href="#" className="md:col-span-2 lg:col-span-2 row-span-2 relative group overflow-hidden sf-card-level-1 rounded-lg">
-            <div 
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
-              style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuACDvDgLMnBa76KcoMT-DS7OpHGP3QeEv30Ug0RRxSypHsH-IgQCgoSfsALLBn9SJKR40qhuYuasfxOIff8PS_mFQnXFBPM5wBASoRb2dowDbZwdcUC4UqGSJWn5d8IXBnKGlKKmb3l-KsriRFLDfWvnskhc59ptmbTNO07HYstTO1L1Oks21OaGaoQ5ELxaoiY1rUHkcK2UbYa0MDZm-b1qbdMCP4eHUNqIga2Tp__3UJmvKBnoiLN')" }}
-            ></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-              <h3 className="font-sf-display text-2xl font-bold text-white">Rau củ</h3>
-            </div>
-          </Link>
-          {/* Category 2: Thịt cá */}
-          <Link href="#" className="md:col-span-1 lg:col-span-2 row-span-1 relative group overflow-hidden sf-card-level-1 rounded-lg">
-            <div 
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
-              style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBCV8VArRIg0UI_NY27vGB9_jvgms17ls8vOV7bs99Mag4ljgoiybOoYsHaTb4OkQ5BxPu0qxczs_M6iAwFYFzQjYS8clSegrz12aUmqbUr4WfwzJpUOsOnLpKiQburHJk7nOmzSQqJvAxl1pHFxH8vS0wcIZOW1CBn1O3Dunx2B14HzboDAmhKb2NdQjORsoUtMxwr9HcoxVtPesgcDVixteCvo8hlh_uazSzT7KLEfGBmHCQT9cQw')" }}
-            ></div>
-            <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent flex items-center p-6">
-              <h3 className="font-sf-display text-2xl font-bold text-white">Thịt cá</h3>
-            </div>
-          </Link>
-          {/* Category 3: Gia vị */}
-          <Link href="#" className="md:col-span-1 lg:col-span-1 row-span-1 relative group overflow-hidden sf-card-level-1 rounded-lg">
-            <div 
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
-              style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBtW4zkdLla7IimAheT5Xp0Bdise4-dXsPBTicAtFvcZhP5kf8jtYe8a_aVXAdBSCOwT4HX4P50b0afzHG4o1Vr1FQuh25r-8Ej7XZoOZX56eKmCD7gpRseKl-gU1g6-xKCzBPvNuLLUv6ytjR7FcXTNDaL7tZuMrylNYUO0zU80wneHJ-QnVAPzoXkHcV3Wm77DnM1fNo1GFdcW8cwC5fJ_dikYa0wJPrmn_QpLy77LxmDw9cwc-bH')" }}
-            ></div>
-            <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/30 transition-colors">
-              <h3 className="font-sf-display text-2xl font-bold text-white bg-black/40 px-4 py-2 backdrop-blur-sm rounded-sm">Gia vị</h3>
-            </div>
-          </Link>
-          {/* Category 4: Đồ uống */}
-          <Link href="#" className="md:col-span-1 lg:col-span-1 row-span-1 relative group overflow-hidden sf-card-level-1 rounded-lg bg-sf-surface-container-low flex flex-col items-center justify-center p-6 text-center">
-            <span className="material-symbols-outlined text-4xl text-sf-primary mb-4">local_cafe</span>
-            <h3 className="font-sf-display text-2xl font-bold text-sf-on-surface">Đồ uống</h3>
-            <p className="text-sm mt-2 text-sf-on-surface-variant font-sf-body">Artisanal coffees & teas</p>
-          </Link>
-        </div>
-      </section>
+      <CategoryGrid />
 
       {/* Promo/Deals Highlight */}
       <section className="max-w-7xl mx-auto px-5 md:px-16 py-12">

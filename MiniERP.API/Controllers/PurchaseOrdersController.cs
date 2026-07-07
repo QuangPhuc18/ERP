@@ -331,6 +331,7 @@ namespace MiniERP.API.Controllers
             }
         }
 
+
         // 6. LẤY LỊCH SỬ THANH TOÁN (GET: api/PurchaseOrders/History)
         [HttpGet("History")]
         public async Task<IActionResult> GetPaymentHistory([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] int? month = null, [FromQuery] int? year = null)

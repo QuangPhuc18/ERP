@@ -70,6 +70,8 @@ namespace MiniERP.API.Controllers
                     p.Quantity,
                     p.CategoryId,
                     p.IsActive, // 🎯 Trả về trạng thái để hiển thị cho Admin
+                    p.IsNew,
+                    p.Description,
                     p.ImageUrl,
                     CategoryName = p.Category != null ? p.Category.Name : "Không có"
                 })
@@ -102,7 +104,9 @@ namespace MiniERP.API.Controllers
                 CostPrice = dto.CostPrice,
                 Quantity = dto.Quantity,
                 CategoryId = dto.CategoryId,
-                ImageUrl = dto.ImageUrl // 🎯 Map chuỗi ảnh Base64 từ DTO vào Entity để lưu xuống SQL Server
+                ImageUrl = dto.ImageUrl, // 🎯 Map chuỗi ảnh Base64 từ DTO vào Entity để lưu xuống SQL Server
+                Description = dto.Description,
+                IsNew = dto.IsNew
             };
 
             _context.Products.Add(product);
@@ -131,6 +135,8 @@ namespace MiniERP.API.Controllers
             product.Quantity = dto.Quantity;
             product.CategoryId = dto.CategoryId;
             product.ImageUrl = dto.ImageUrl; // 🎯 Cập nhật lại ảnh mới (hoặc chuỗi rỗng nếu gỡ ảnh)
+            product.Description = dto.Description;
+            product.IsNew = dto.IsNew;
 
             _context.Products.Update(product);
             await _context.SaveChangesAsync();

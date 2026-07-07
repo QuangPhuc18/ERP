@@ -18,6 +18,37 @@ namespace MiniERP.API.Controllers
             _context = context;
         }
 
+        // 🎯 [NEW] Lấy Banner đang kích hoạt cho Storefront
+        [HttpGet("banners/active")]
+        public async Task<IActionResult> GetActiveBanner()
+        {
+            var banner = await _context.Banners
+                .Where(b => b.IsActive)
+                .OrderByDescending(b => b.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (banner == null) return NotFound("No active banner");
+
+            return Ok(banner);
+        }
+
+        // 🎯 [NEW] Lấy danh sách danh mục hàng hóa hiển thị lên trang chủ
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetCategories()
+        {
+            var categories = await _context.Categories
+                .Select(c => new
+                {
+                    c.Id,
+                    c.Name,
+                    c.Description,
+                    c.ImageUrl
+                })
+                .ToListAsync();
+
+            return Ok(categories);
+        }
+
         // Lấy danh sách sản phẩm hiển thị trên Web (chỉ lấy SP đang kinh doanh và còn tồn kho)
         [HttpGet("products")]
         public async Task<IActionResult> GetProducts()
@@ -32,6 +63,9 @@ namespace MiniERP.API.Controllers
                     p.ProductName,
                     p.Price,
                     p.ImageUrl,
+                    p.ViewCount,
+                    p.IsNew,
+                    p.Description,
                     CategoryName = p.Category != null ? p.Category.Name : "Không có"
                 })
                 .ToListAsync();
@@ -54,6 +88,9 @@ namespace MiniERP.API.Controllers
                     p.Price,
                     p.Quantity,
                     p.ImageUrl,
+                    p.ViewCount,
+                    p.IsNew,
+                    p.Description,
                     CategoryName = p.Category != null ? p.Category.Name : "Không có"
                 })
                 .FirstOrDefaultAsync();
@@ -71,6 +108,8 @@ namespace MiniERP.API.Controllers
             public string Address { get; set; } = null!;
             public string? Note { get; set; }
             public string PaymentMethod { get; set; } = "COD";
+            public string? ShippingMethod { get; set; }
+            public decimal ShippingFee { get; set; } = 0;
             public List<OnlineOrderDetail> Details { get; set; } = new();
         }
 
@@ -121,9 +160,12 @@ namespace MiniERP.API.Controllers
                     OrderDate = DateTime.Now,
                     AmountPaid = 0,
                     PaymentMethod = request.PaymentMethod,
+                    ShippingMethod = request.ShippingMethod,
+                    ShippingAddress = request.Address,
+                    ShippingFee = request.ShippingFee,
                     Note = "Đơn Online: " + request.Note,
                     Status = "Pending", // Trạng thái chờ duyệt
-                    TotalAmount = 0
+                    TotalAmount = request.ShippingFee // Cộng dồn tiền hàng sau
                 };
 
                 // 3. Xử lý Chi tiết Đơn hàng & Tồn kho
@@ -177,6 +219,25 @@ namespace MiniERP.API.Controllers
                 await transaction.RollbackAsync();
                 return BadRequest(ex.Message);
             }
+        }
+
+        // Lấy danh sách bài viết Journal
+        [HttpGet("posts")]
+        public async Task<IActionResult> GetPosts()
+        {
+            var posts = await _context.Posts
+                .OrderByDescending(p => p.PublishDate)
+                .ToListAsync();
+            return Ok(posts);
+        }
+
+        // Lấy chi tiết bài viết Journal
+        [HttpGet("posts/{id}")]
+        public async Task<IActionResult> GetPostById(int id)
+        {
+            var post = await _context.Posts.FindAsync(id);
+            if (post == null) return NotFound("Bài viết không tồn tại.");
+            return Ok(post);
         }
     }
 }

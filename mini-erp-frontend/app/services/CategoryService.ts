@@ -4,6 +4,8 @@ import httpAxios from "./httpAxios";
 export interface CategoryDTO {
   id: number;
   name: string;
+  description?: string;
+  imageUrl?: string;
 }
 
 const CategoryService = {

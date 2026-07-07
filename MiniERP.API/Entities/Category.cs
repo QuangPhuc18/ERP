@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace MiniERP.API.Entities
 {
@@ -10,6 +10,10 @@ namespace MiniERP.API.Entities
         [Required]
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
+
+        public string? Description { get; set; }
+        
+        public string? ImageUrl { get; set; }
 
         // Mối quan hệ 1-N: 1 Danh mục có nhiều Sản phẩm
         public ICollection<Product> Products { get; set; } = new List<Product>();
