@@ -28,12 +28,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const token = localStorage.getItem("erp_token");
+      if (!token) {
+        router.push("/auth/login");
+        return;
+      }
+      
       const role = localStorage.getItem("user_role") || "user";
       const name = localStorage.getItem("username") || "User";
       setUserRole(role);
       setUsername(name);
     }
-  }, []);
+  }, [router]);
 
   // 🎯 Cấu trúc hóa Menu theo Từng Phân Hệ
   const menuGroups = [
@@ -152,7 +158,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           className={`flex items-center px-3 py-2 rounded-xl font-medium transition-all group ${
                             isActive 
                               ? "bg-orange-50 text-orange-600" 
-                              : item.isHighlight
+                              : ('isHighlight' in item && item.isHighlight)
                                 ? "text-emerald-600 hover:bg-emerald-50"
                                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
                           }`}

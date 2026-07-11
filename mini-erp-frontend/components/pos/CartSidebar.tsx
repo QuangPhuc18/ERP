@@ -16,8 +16,9 @@ interface CartSidebarProps {
   orderNum: number;
   setShowCustModal: (val: boolean) => void;
   selectedCustomer: Customer | null;
-  updateQty: (id: number, delta: number) => void;
-  removeItem: (id: number) => void;
+  updateQty: (id: number, delta: number, unitId?: number | null) => void;
+  updateUnit: (id: number, oldUnitId: number | null | undefined, newUnitId: number) => void;
+  removeItem: (id: number, unitId?: number | null) => void;
   subtotal: number;
   totalAmount: number;
   handleOpenCheckout: () => void;
@@ -29,7 +30,7 @@ const fmt = (n: number) => n.toLocaleString("vi-VN") + "đ";
 export const CartSidebar: React.FC<CartSidebarProps> = ({
   isMobileCartOpen, setIsMobileCartOpen, cart, tabs, activeTabId, setActiveTabId,
   tabsContainerRef, setTabs, tabCounter, setTabCounter, orderNum, setShowCustModal,
-  selectedCustomer, updateQty, removeItem, subtotal, totalAmount, handleOpenCheckout, isProcessing
+  selectedCustomer, updateQty, updateUnit, removeItem, subtotal, totalAmount, handleOpenCheckout, isProcessing
 }) => {
   const handleTabScroll = (e: React.WheelEvent) => {
     if (tabsContainerRef.current) {
@@ -94,15 +95,29 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-bold text-gray-900 truncate tracking-tight">{item.productName}</p>
                     <p className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-widest">{item.productCode}</p>
-                    <div className="flex items-center gap-2 mt-4">
+                    <div className="flex items-center gap-3 mt-3">
                       <div className="flex items-center bg-gray-50/50 border border-gray-200/60 rounded-xl overflow-hidden p-0.5">
-                        <button onClick={() => updateQty(item.id, -1)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-sm rounded-lg transition-all"><IMinus /></button>
+                        <button onClick={() => updateQty(item.id, -1, item.selectedUnitId)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-sm rounded-lg transition-all"><IMinus /></button>
                         <span className="text-[13px] font-black text-gray-900 w-8 text-center flex items-center justify-center tabular-nums">{item.cartQuantity}</span>
-                        <button onClick={() => updateQty(item.id, 1)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-sm rounded-lg transition-all"><IPlus /></button>
+                        <button onClick={() => updateQty(item.id, 1, item.selectedUnitId)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-white hover:shadow-sm rounded-lg transition-all"><IPlus /></button>
                       </div>
+                      
+                      {/* Unit Selection Dropdown */}
+                      {((item.productUoMs && item.productUoMs.length > 0) || item.unitId) && (
+                        <select 
+                          className="h-9 px-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 outline-none"
+                          value={item.selectedUnitId || item.unitId || ""}
+                          onChange={(e) => updateUnit(item.id, item.selectedUnitId || undefined, Number(e.target.value))}
+                        >
+                          <option value={item.unitId || ""}>{item.unitName || "ĐV Cơ bản"}</option>
+                          {item.productUoMs?.map(u => (
+                            <option key={u.unitId} value={u.unitId}>{u.unitName}</option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                   </div>
-                  <div className="flex flex-col items-end justify-between"><button onClick={() => removeItem(item.id)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><IClose /></button><span className="text-[16px] font-black text-gray-900 tracking-tight">{fmt(item.price * item.cartQuantity)}</span></div>
+                  <div className="flex flex-col items-end justify-between"><button onClick={() => removeItem(item.id, item.selectedUnitId)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><IClose /></button><span className="text-[16px] font-black text-gray-900 tracking-tight">{fmt((item.selectedPrice ?? item.price) * item.cartQuantity)}</span></div>
                 </div>
               ))}
             </div>

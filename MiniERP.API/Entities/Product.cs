@@ -37,5 +37,13 @@ namespace MiniERP.API.Entities
         public int CategoryId { get; set; }
         [ForeignKey("CategoryId")]
         public Category? Category { get; set; }
+
+        // Đơn vị Cơ bản (Base Unit)
+        public int? UnitId { get; set; }
+        [ForeignKey("UnitId")]
+        public Unit? Unit { get; set; }
+
+        // Danh sách các Đơn vị quy đổi (Thùng, Lốc...)
+        public ICollection<ProductUoM> ProductUoMs { get; set; } = new List<ProductUoM>();
     }
 }

@@ -27,5 +27,35 @@ namespace MiniERP.API.DTOs
         public string? Description { get; set; }
         
         public bool IsNew { get; set; }
+
+        public int? UnitId { get; set; }
+        public List<ProductUoMDTO>? ProductUoMs { get; set; }
+    }
+
+    public class ProductUoMDTO
+    {
+        public int UnitId { get; set; }
+        public int ConversionFactor { get; set; }
+        public decimal Price { get; set; }
+    }
+
+    public class ProductImportDTO
+    {
+        public string ProductCode { get; set; } = string.Empty;
+        public string ProductName { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public decimal CostPrice { get; set; }
+        public int Quantity { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
+        public string UnitName { get; set; } = string.Empty;
+        public List<ProductUoMImportDTO>? ProductUoMs { get; set; }
+    }
+
+    public class ProductUoMImportDTO
+    {
+        public string UnitName { get; set; } = string.Empty;
+        public int ConversionFactor { get; set; }
+        public decimal Price { get; set; }
     }
 }

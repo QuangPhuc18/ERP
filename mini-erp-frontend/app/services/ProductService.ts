@@ -14,6 +14,17 @@ export interface ProductDTO {
   description?: string;
   isNew?: boolean;
   isActive?: boolean; // 🎯 Trạng thái ngừng kinh doanh
+  unitId?: number | null;
+  unitName?: string;
+  productUoMs?: ProductUoMDTO[];
+}
+
+export interface ProductUoMDTO {
+  id?: number;
+  unitId: number;
+  unitName?: string;
+  conversionFactor: number;
+  price: number;
 }
 
 const ProductService = {
@@ -43,6 +54,12 @@ const ProductService = {
   // 🎯 Bật / Tắt trạng thái ngừng kinh doanh
   toggleStatus: async (id: number): Promise<{ message: string, isActive: boolean }> => {
     const response = await httpAxios.put(`/Products/${id}/toggle-status`);
+    return response.data;
+  },
+
+  // 🎯 Nhập dữ liệu từ Excel
+  importExcel: async (data: any[]): Promise<{ message: string, errors: string[] }> => {
+    const response = await httpAxios.post('/Products/import', data);
     return response.data;
   }
 };

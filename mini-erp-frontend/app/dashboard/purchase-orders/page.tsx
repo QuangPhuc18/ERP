@@ -37,6 +37,7 @@ export default function PurchaseOrdersPage() {
   const [selectedProductId, setSelectedProductId] = useState<number>(0);
   const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
   const [selectedUnitPrice, setSelectedUnitPrice] = useState<number>(0);
+  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null); // 🎯 Unit được chọn
 
   // --- STATE XEM CHI TIẾT PHIẾU NHẬP ---
   const [selectedPO, setSelectedPO] = useState<PurchaseOrderDTO | null>(null);
@@ -81,9 +82,27 @@ export default function PurchaseOrdersPage() {
     setSelectedProductId(productId);
     const product = products.find(p => p.id === productId);
     if (product) {
-      setSelectedUnitPrice(product.price * 0.7);
+      setSelectedUnitPrice(product.costPrice || (product.price * 0.7)); // Dùng giá vốn mặc định
+      setSelectedUnitId(product.unitId || null);
     } else {
       setSelectedUnitPrice(0);
+      setSelectedUnitId(null);
+    }
+  };
+
+  const handleUnitChange = (unitId: number | null) => {
+    setSelectedUnitId(unitId);
+    const product = products.find(p => p.id === selectedProductId);
+    if (product) {
+      if (unitId === product.unitId || !unitId) {
+        setSelectedUnitPrice(product.costPrice || (product.price * 0.7));
+      } else {
+        const uom = product.productUoMs?.find(u => u.unitId === unitId);
+        if (uom) {
+          // Gợi ý giá vốn = Giá bán UoM * 0.7
+          setSelectedUnitPrice(uom.price * 0.7); 
+        }
+      }
     }
   };
 
@@ -96,7 +115,13 @@ export default function PurchaseOrdersPage() {
     const product = products.find(p => p.id === selectedProductId);
     if (!product) return;
 
-    const existingItemIndex = cart.findIndex(item => item.productId === selectedProductId);
+    let unitName = product.unitName || "Đơn vị cơ bản";
+    if (selectedUnitId && selectedUnitId !== product.unitId) {
+      const uom = product.productUoMs?.find(u => u.unitId === selectedUnitId);
+      if (uom && uom.unitName) unitName = uom.unitName;
+    }
+
+    const existingItemIndex = cart.findIndex(item => item.productId === selectedProductId && item.unitId === selectedUnitId);
     if (existingItemIndex >= 0) {
       const newCart = [...cart];
       newCart[existingItemIndex].quantity += selectedQuantity;
@@ -107,7 +132,9 @@ export default function PurchaseOrdersPage() {
         productId: product.id,
         productName: product.productName,
         unitPrice: selectedUnitPrice,
-        quantity: selectedQuantity
+        quantity: selectedQuantity,
+        unitId: selectedUnitId || undefined,
+        unitName: unitName
       }]);
     }
     
@@ -116,8 +143,8 @@ export default function PurchaseOrdersPage() {
     setProductSearch(""); // Reset ô tìm kiếm sau khi thêm thành công
   };
 
-  const removeFromCart = (productId: number) => {
-    setCart(cart.filter(item => item.productId !== productId));
+  const removeFromCart = (productId: number, unitId?: number) => {
+    setCart(cart.filter(item => !(item.productId === productId && item.unitId === unitId)));
   };
 
   const totalAmount = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
@@ -140,7 +167,8 @@ export default function PurchaseOrdersPage() {
         details: cart.map(c => ({
           productId: c.productId,
           quantity: c.quantity,
-          unitPrice: c.unitPrice
+          unitPrice: c.unitPrice,
+          unitId: c.unitId
         }))
       };
 
@@ -181,11 +209,13 @@ export default function PurchaseOrdersPage() {
     const foundSupplier = suppliers.find(s => s.name === selectedPO.supplierName);
     setSupplierId(foundSupplier ? foundSupplier.id : (suppliers.length > 0 ? suppliers[0].id : 0));
     
-    setCart(selectedPO.details.map(d => ({
+    setCart((selectedPO.details || []).map(d => ({
       productId: d.productId,
       productName: d.productName,
       unitPrice: d.unitPrice,
-      quantity: d.quantity
+      quantity: d.quantity,
+      unitId: d.unitId,
+      unitName: d.unitName
     })));
     
     setModalError("");
@@ -371,7 +401,8 @@ export default function PurchaseOrdersPage() {
                   <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
                     <tr>
                       <th className="px-4 py-2.5 font-bold">Tên sản phẩm</th>
-                      <th className="px-4 py-2.5 font-bold text-center w-20">Số lượng</th>
+                      <th className="px-4 py-2.5 font-bold text-center w-20">SL</th>
+                      <th className="px-4 py-2.5 font-bold text-center">Đơn vị</th>
                       <th className="px-4 py-2.5 font-bold text-right">Đơn giá nhập</th>
                       <th className="px-4 py-2.5 font-bold text-right">Thành tiền</th>
                     </tr>
@@ -382,6 +413,7 @@ export default function PurchaseOrdersPage() {
                         <tr key={idx} className="hover:bg-gray-50/40 transition-colors">
                           <td className="px-4 py-3 font-semibold text-gray-800">{detail.productName || `Sản phẩm (ID: ${detail.productId})`}</td>
                           <td className="px-4 py-3 text-center font-bold text-blue-600">+{detail.quantity}</td>
+                          <td className="px-4 py-3 text-center text-gray-500 text-sm">{detail.unitName || "Cơ bản"}</td>
                           <td className="px-4 py-3 text-right text-gray-500">{formatCurrency(detail.unitPrice)}</td>
                           <td className="px-4 py-3 text-right font-bold text-gray-800">{formatCurrency(detail.unitPrice * detail.quantity)}</td>
                         </tr>
@@ -522,6 +554,29 @@ export default function PurchaseOrdersPage() {
                     </ul>
                   )}
                 </div>
+                
+                {/* 🎯 [NEW] Dropdown chọn Đơn vị */}
+                <div className="w-32">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Đơn vị</label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-rose-500 bg-white text-sm"
+                    value={selectedUnitId || ""}
+                    onChange={(e) => handleUnitChange(e.target.value ? Number(e.target.value) : null)}
+                    disabled={selectedProductId === 0}
+                  >
+                    {selectedProductId !== 0 && products.find(p => p.id === selectedProductId) && (
+                      <>
+                        <option value={products.find(p => p.id === selectedProductId)?.unitId || ""}>
+                          {products.find(p => p.id === selectedProductId)?.unitName || "Cơ bản"}
+                        </option>
+                        {products.find(p => p.id === selectedProductId)?.productUoMs?.map(u => (
+                          <option key={u.id} value={u.unitId}>{u.unitName}</option>
+                        ))}
+                      </>
+                    )}
+                  </select>
+                </div>
+
                 <div className="w-32">
                   <label className="block text-xs font-medium text-gray-700 mb-1">Giá nhập (VNĐ)</label>
                   <input 
@@ -552,6 +607,7 @@ export default function PurchaseOrdersPage() {
                     <tr>
                       <th className="px-4 py-2 font-semibold">Tên SP</th>
                       <th className="px-4 py-2 font-semibold text-center w-16">SL</th>
+                      <th className="px-4 py-2 font-semibold text-center w-24">Đơn vị</th>
                       <th className="px-4 py-2 font-semibold text-right">Giá nhập</th>
                       <th className="px-4 py-2 font-semibold text-right">Thành tiền</th>
                       <th className="px-4 py-2 font-semibold text-center w-16">Xóa</th>
@@ -559,15 +615,16 @@ export default function PurchaseOrdersPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {cart.length === 0 ? (
-                      <tr><td colSpan={5} className="text-center py-6 text-gray-400">Chưa có SP nào để nhập</td></tr>
+                      <tr><td colSpan={6} className="text-center py-6 text-gray-400">Chưa có SP nào để nhập</td></tr>
                     ) : cart.map((item, idx) => (
                       <tr key={idx} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3 font-medium text-gray-800">{item.productName}</td>
                         <td className="px-4 py-3 text-center font-bold text-blue-600">+{item.quantity}</td>
+                        <td className="px-4 py-3 text-center text-sm text-gray-500 bg-gray-50/50">{item.unitName || "Cơ bản"}</td>
                         <td className="px-4 py-3 text-right text-gray-600">{formatCurrency(item.unitPrice)}</td>
                         <td className="px-4 py-3 text-right font-medium text-rose-600">{formatCurrency(item.unitPrice * item.quantity)}</td>
                         <td className="px-4 py-3 text-center">
-                          <button onClick={() => removeFromCart(item.productId)} className="text-red-400 hover:text-red-600 transition-colors">
+                          <button onClick={() => removeFromCart(item.productId, item.unitId)} className="text-red-400 hover:text-red-600 transition-colors">
                             <span className="material-symbols-outlined text-base">delete</span>
                           </button>
                         </td>

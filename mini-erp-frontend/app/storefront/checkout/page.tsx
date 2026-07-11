@@ -3,12 +3,15 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../CartContext";
+import { useCustomerAuth } from "../CustomerAuthContext";
 import httpAxios from "../../services/httpAxios";
 import Link from "next/link";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, cartTotal, clearCart } = useCart();
+  const { isLoggedIn, customerName, customerPhone } = useCustomerAuth();
+  
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,9 +25,20 @@ export default function CheckoutPage() {
     paymentMethod: "cod"
   });
 
+  // Autofill nếu đã đăng nhập
+  React.useEffect(() => {
+    if (isLoggedIn) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: customerName || prev.fullName,
+        phone: customerPhone || prev.phone
+      }));
+    }
+  }, [isLoggedIn, customerName, customerPhone]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, name, value } = e.target;
-    setFormData({ ...formData, [id || name]: value });
+    setFormData(prev => ({ ...prev, [id || name]: value }));
   };
 
   const shippingCost = formData.shipping === "express" ? 55000 : 30000;

@@ -1,3 +1,10 @@
+export interface ProductUoM {
+  unitId: number;
+  unitName?: string;
+  conversionFactor: number;
+  price: number;
+}
+
 export interface Product {
   id: number;
   productCode: string;
@@ -6,10 +13,17 @@ export interface Product {
   quantity: number;
   categoryName?: string;
   imageUrl?: string;
+  unitId?: number | null;
+  unitName?: string | null;
+  productUoMs?: ProductUoM[];
 }
 
 export interface CartItem extends Product {
   cartQuantity: number;
+  selectedUnitId?: number | null;
+  selectedUnitName?: string | null;
+  selectedPrice?: number;
+  conversionFactor?: number;
 }
 
 export interface Customer {

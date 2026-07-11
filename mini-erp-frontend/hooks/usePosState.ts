@@ -126,7 +126,7 @@ export const usePosState = () => {
     setCurrentPage(1);
   }, [searchQuery, activeCategory]);
 
-  const subtotal = cart.reduce((s, i) => s + i.price * i.cartQuantity, 0);
+  const subtotal = cart.reduce((s, i) => s + (i.selectedPrice ?? i.price) * i.cartQuantity, 0);
   const discVal = parseFloat(discountValue) || 0;
   const discountAmount = discountType === "pct" ? subtotal * (discVal / 100) : Math.min(discVal, subtotal);
   const totalAmount = Math.round(subtotal - discountAmount);
@@ -151,7 +151,8 @@ export const usePosState = () => {
         details: cart.map((c) => ({
           productId: c.id,
           quantity: c.cartQuantity,
-          unitPrice: c.price,
+          unitPrice: c.selectedPrice ?? c.price,
+          unitId: c.selectedUnitId ?? c.unitId // Gửi UnitId lên Backend
         })),
       });
 
@@ -236,27 +237,96 @@ export const usePosState = () => {
   const addToCart = (product: Product) => {
     if (product.quantity <= 0) return alert("Sản phẩm đã hết hàng!");
     setCart((prev) => {
-      const existing = prev.find((i) => i.id === product.id);
-      if (existing) {
-        if (existing.cartQuantity >= product.quantity) return prev;
-        return prev.map((i) => i.id === product.id ? { ...i, cartQuantity: i.cartQuantity + 1 } : i);
+      // 🎯 Kiểm tra xem đã có sản phẩm này với CÙNG MỘT ĐƠN VỊ TÍNH trong giỏ hàng chưa
+      const defaultUnitId = product.unitId;
+      const existingIndex = prev.findIndex((i) => i.id === product.id && i.selectedUnitId === defaultUnitId);
+      
+      if (existingIndex >= 0) {
+        const existing = prev[existingIndex];
+        const currentQty = existing.cartQuantity * (existing.conversionFactor || 1);
+        if (currentQty >= product.quantity) {
+          alert("Không đủ tồn kho!");
+          return prev;
+        }
+        const updatedCart = [...prev];
+        updatedCart[existingIndex] = { ...existing, cartQuantity: existing.cartQuantity + 1 };
+        return updatedCart;
       }
-      return [...prev, { ...product, cartQuantity: 1 }];
+      
+      return [...prev, { 
+        ...product, 
+        cartQuantity: 1, 
+        selectedUnitId: defaultUnitId, 
+        selectedUnitName: product.unitName, 
+        selectedPrice: product.price, 
+        conversionFactor: 1 
+      }];
     });
   };
 
-  const updateQty = (id: number, delta: number) => {
+  const updateQty = (id: number, delta: number, unitId?: number | null) => {
     setCart((prev) =>
       prev.map((item) => {
-        if (item.id !== id) return item;
+        if (item.id !== id || item.selectedUnitId !== unitId) return item;
         const newQty = item.cartQuantity + delta;
-        if (newQty > item.quantity) return item;
+        const totalDeducted = newQty * (item.conversionFactor || 1);
+        if (totalDeducted > item.quantity) {
+          alert("Không đủ tồn kho!");
+          return item;
+        }
         return { ...item, cartQuantity: Math.max(0, newQty) };
       }).filter((item) => item.cartQuantity > 0)
     );
   };
 
-  const removeItem = (id: number) => setCart((prev) => prev.filter((i) => i.id !== id));
+  const updateUnit = (id: number, oldUnitId: number | null | undefined, newUnitId: number) => {
+    setCart((prev) => {
+      const itemIndex = prev.findIndex(i => i.id === id && i.selectedUnitId === oldUnitId);
+      if (itemIndex === -1) return prev;
+      
+      const item = prev[itemIndex];
+      let newPrice = item.price;
+      let newUnitName = item.unitName;
+      let newConv = 1;
+
+      if (newUnitId !== item.unitId && item.productUoMs) {
+        const uom = item.productUoMs.find(u => u.unitId === newUnitId);
+        if (uom) {
+          newPrice = uom.price;
+          newUnitName = uom.unitName;
+          newConv = uom.conversionFactor;
+        }
+      }
+
+      const totalDeducted = item.cartQuantity * newConv;
+      if (totalDeducted > item.quantity) {
+        alert("Không đủ tồn kho để chuyển đổi sang đơn vị này!");
+        return prev;
+      }
+
+      // Check if the new unit already exists in cart for this product
+      const existingTargetIndex = prev.findIndex(i => i.id === id && i.selectedUnitId === newUnitId);
+      
+      const newCart = [...prev];
+      if (existingTargetIndex >= 0 && existingTargetIndex !== itemIndex) {
+        // Merge
+        newCart[existingTargetIndex].cartQuantity += item.cartQuantity;
+        newCart.splice(itemIndex, 1);
+      } else {
+        // Update current
+        newCart[itemIndex] = {
+          ...item,
+          selectedUnitId: newUnitId,
+          selectedUnitName: newUnitName,
+          selectedPrice: newPrice,
+          conversionFactor: newConv
+        };
+      }
+      return newCart;
+    });
+  };
+
+  const removeItem = (id: number, unitId?: number | null) => setCart((prev) => prev.filter((i) => !(i.id === id && i.selectedUnitId === unitId)));
 
   const filteredProducts = products.filter((p) => {
     const matchCat = activeCategory === "Tất cả" || p.categoryName === activeCategory;
@@ -285,6 +355,6 @@ export const usePosState = () => {
     categories, fetchProducts, fetchCustomers,
     subtotal, discVal, discountAmount, totalAmount,
     handleOpenCheckout, handleCheckout, handleAddQuickCustomer,
-    addToCart, updateQty, removeItem, filteredProducts, totalPages, currentProducts
+    addToCart, updateQty, updateUnit, removeItem, filteredProducts, totalPages, currentProducts
   };
 };

@@ -6,6 +6,8 @@ export interface PurchaseOrderDetailDTO {
   productName?: string;
   quantity: number;
   unitPrice: number; // Giá vốn nhập vào
+  unitId?: number;
+  unitName?: string;
 }
 
 // 2. Dữ liệu gửi lên khi Tạo phiếu nhập

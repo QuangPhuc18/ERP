@@ -40,7 +40,7 @@ httpAxios.interceptors.response.use(
       console.warn("Token đã hết hạn hoặc không hợp lệ. Đăng xuất!");
       localStorage.removeItem('erp_token');
       // Tự động đẩy người dùng văng ra trang Login
-      window.location.href = "/"; 
+      window.location.href = "/auth/login"; 
     }
     return Promise.reject(error);
   }

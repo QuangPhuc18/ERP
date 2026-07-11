@@ -13,6 +13,8 @@ namespace MiniERP.API.DTOs
 
         [Required]
         public decimal UnitPrice { get; set; }
+
+        public int? UnitId { get; set; } // Đơn vị được chọn khi bán
     }
 
     public class OrderCreateDTO

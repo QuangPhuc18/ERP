@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace MiniERP.API.DTOs
 {
@@ -14,6 +14,8 @@ namespace MiniERP.API.DTOs
         [Required]
         [Range(0, double.MaxValue, ErrorMessage = "Giá nhập không hợp lệ")]
         public decimal UnitPrice { get; set; } // Giá nhập từ nhà cung cấp có thể thay đổi theo thời giá
+        
+        public int? UnitId { get; set; }
     }
 
     public class PurchaseOrderCreateDTO

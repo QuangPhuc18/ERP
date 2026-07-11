@@ -23,9 +23,15 @@ namespace MiniERP.API.Entities
         public int Quantity { get; set; } // Số lượng mua
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal UnitPrice { get; set; } // Đơn giá lúc mua (tránh việc sau này giá SP đổi làm sai lịch sử)
-
+        public decimal UnitPrice { get; set; } // Giá bán thực tế lúc xuất hóa đơn
+        
         [Column(TypeName = "decimal(18,2)")]
-        public decimal UnitCost { get; set; } // Giá vốn lúc bán (để tính lợi nhuận chuẩn xác)
+        public decimal UnitCost { get; set; } // Giá vốn của sản phẩm lúc bán (để tính lãi lỗ gộp)
+
+        // 🎯 [NEW] Lưu vết Đơn vị tính được chọn tại thời điểm bán (Lốc/Thùng/Chai)
+        public string? UnitName { get; set; }
+
+        // 🎯 [NEW] Lưu vết Hệ số quy đổi tại thời điểm bán (để nhân ra đơn vị cơ bản)
+        public int ConversionFactor { get; set; } = 1;
     }
 }

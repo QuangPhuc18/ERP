@@ -3,6 +3,7 @@
 import React from "react";
 import { Syne, Work_Sans } from "next/font/google";
 import { CartProvider } from "./CartContext";
+import { CustomerAuthProvider } from "./CustomerAuthContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { usePathname } from "next/navigation";
@@ -18,19 +19,22 @@ export default function StorefrontLayout({
 }) {
   const pathname = usePathname();
   const isCheckout = pathname?.includes("/storefront/checkout");
+  const isAuth = pathname?.includes("/storefront/auth");
 
   return (
-    <CartProvider>
-      <div className={`min-h-screen flex flex-col bg-sf-background text-sf-on-background font-sf-body overflow-x-hidden antialiased ${syne.variable} ${workSans.variable}`}>
-        {!isCheckout && <Header />}
-        
-        {/* Phần Main Content ở giữa */}
-        <main className={`flex-grow ${!isCheckout ? 'pt-[100px] pb-12' : ''}`}>
-          {children}
-        </main>
-        
-        {!isCheckout && <Footer />}
-      </div>
-    </CartProvider>
+    <CustomerAuthProvider>
+      <CartProvider>
+        <div className={`min-h-screen flex flex-col bg-sf-background text-sf-on-background font-sf-body overflow-x-hidden antialiased ${syne.variable} ${workSans.variable}`}>
+          {!isCheckout && !isAuth && <Header />}
+          
+          {/* Phần Main Content ở giữa */}
+          <main className={`flex-grow ${(!isCheckout && !isAuth) ? 'pt-[100px] pb-12' : ''}`}>
+            {children}
+          </main>
+          
+          {!isCheckout && !isAuth && <Footer />}
+        </div>
+      </CartProvider>
+    </CustomerAuthProvider>
   );
 }

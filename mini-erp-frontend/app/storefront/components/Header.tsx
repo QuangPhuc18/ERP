@@ -3,9 +3,11 @@
 import React from "react";
 import Link from "next/link";
 import { useCart } from "../CartContext";
+import { useCustomerAuth } from "../CustomerAuthContext";
 
 const Header = () => {
   const { cartCount } = useCart();
+  const { isLoggedIn, customerName, logout } = useCustomerAuth();
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-sf-surface/80 backdrop-blur-md dark:bg-sf-inverse-surface/80">
@@ -36,9 +38,24 @@ const Header = () => {
         
         {/* Actions */}
         <div className="flex items-center gap-4 text-sf-primary dark:text-sf-primary-fixed font-sf-body text-base">
-          <Link className="hover:text-sf-primary transition-colors duration-200 group flex items-center justify-center p-2" href="/auth/login" title="Đăng nhập Admin">
-            <span className="material-symbols-outlined group-hover:fill">person</span>
-          </Link>
+          {isLoggedIn ? (
+            <div className="flex items-center gap-3">
+              <span className="font-sf-body text-sm font-semibold hidden md:block">
+                Hi, {customerName}
+              </span>
+              <button 
+                onClick={logout}
+                className="hover:text-sf-primary transition-colors duration-200 group flex items-center justify-center p-2" 
+                title="Đăng xuất"
+              >
+                <span className="material-symbols-outlined group-hover:fill">logout</span>
+              </button>
+            </div>
+          ) : (
+            <Link className="hover:text-sf-primary transition-colors duration-200 group flex items-center justify-center p-2" href="/storefront/auth/login" title="Đăng nhập">
+              <span className="material-symbols-outlined group-hover:fill">person</span>
+            </Link>
+          )}
           <Link className="hover:text-sf-primary transition-colors duration-200 group relative flex items-center justify-center p-2" href="/storefront/cart">
             <span className="material-symbols-outlined group-hover:fill">shopping_cart</span>
             {cartCount > 0 && (

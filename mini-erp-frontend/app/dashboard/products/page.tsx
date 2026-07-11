@@ -3,10 +3,13 @@
 import React, { useEffect, useState, useCallback } from "react";
 import ProductService, { ProductDTO } from "../../services/ProductService";
 import CategoryService, { CategoryDTO } from "../../services/CategoryService";
+import { getUnits, Unit } from "../../services/UnitService";
+import * as XLSX from "xlsx";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<ProductDTO[]>([]);
   const [categories, setCategories] = useState<CategoryDTO[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<string>("user");
   const [mounted, setMounted] = useState(false);
@@ -25,17 +28,21 @@ export default function ProductsPage() {
     imageUrl: "", // 🎯 Bổ sung trường dữ liệu ảnh
     description: "",
     isNew: false,
+    unitId: 0,
+    productUoMs: [] as { unitId: number, conversionFactor: number, price: number }[],
   });
 
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [productData, categoryData] = await Promise.all([
+      const [productData, categoryData, unitData] = await Promise.all([
         ProductService.getAll(),
-        CategoryService.getAll()
+        CategoryService.getAll(),
+        getUnits()
       ]);
       setProducts(productData);
       setCategories(categoryData);
+      setUnits(unitData);
     } catch (error) {
       console.error("Lỗi tải dữ liệu:", error);
     } finally {
@@ -101,6 +108,8 @@ export default function ProductsPage() {
       imageUrl: "",
       description: "",
       isNew: true,
+      unitId: units.length > 0 ? units[0].id : 0,
+      productUoMs: [],
     });
     setModalError("");
     setIsModalOpen(true);
@@ -122,6 +131,8 @@ export default function ProductsPage() {
       imageUrl: product.imageUrl || "", // Nhận ảnh từ DB đổ lên form sửa
       description: product.description || "",
       isNew: product.isNew || false,
+      unitId: product.unitId || (units.length > 0 ? units[0].id : 0),
+      productUoMs: product.productUoMs || [],
     });
     setModalError("");
     setIsModalOpen(true);
@@ -182,9 +193,80 @@ export default function ProductsPage() {
           <p className="text-sm text-gray-500 mt-1">Danh sách hàng hóa, hình ảnh và tình trạng tồn kho</p>
         </div>
         {isAdmin && (
-          <button onClick={handleOpenAdd} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-md shadow-orange-100">
-            <span className="material-symbols-outlined text-sm">add</span> Thêm sản phẩm
-          </button>
+          <div className="flex gap-2">
+            <input 
+              type="file" 
+              accept=".xlsx, .xls" 
+              className="hidden" 
+              id="excel-upload"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = async (evt) => {
+                  try {
+                    const data = evt.target?.result;
+                    const workbook = XLSX.read(data, { type: "binary" });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet) as any[];
+
+                    // Map to DTO
+                    const importList = jsonData.map(row => {
+                      const uoms = [];
+                      if (row['ĐV Quy đổi 1'] && row['Hệ số 1']) {
+                        uoms.push({ unitName: row['ĐV Quy đổi 1'], conversionFactor: Number(row['Hệ số 1']), price: Number(row['Giá 1'] || 0) });
+                      }
+                      if (row['ĐV Quy đổi 2'] && row['Hệ số 2']) {
+                        uoms.push({ unitName: row['ĐV Quy đổi 2'], conversionFactor: Number(row['Hệ số 2']), price: Number(row['Giá 2'] || 0) });
+                      }
+                      
+                      return {
+                        productCode: String(row['Mã SP'] || ''),
+                        productName: String(row['Tên SP'] || ''),
+                        categoryName: String(row['Danh mục'] || ''),
+                        unitName: String(row['Đơn vị cơ bản'] || ''),
+                        price: Number(row['Giá bán lẻ'] || 0),
+                        costPrice: Number(row['Giá vốn'] || 0),
+                        quantity: 0, // 🎯 LUÔN MẶC ĐỊNH LÀ 0 ĐỂ ÉP NHẬP KHO CHUẨN
+                        imageUrl: row['Link Ảnh'] ? String(row['Link Ảnh']) : null,
+                        productUoMs: uoms
+                      };
+                    });
+
+                    const res = await ProductService.importExcel(importList);
+                    alert(res.message + (res.errors && res.errors.length > 0 ? '\n\nCảnh báo:\n' + res.errors.join('\n') : ''));
+                    loadData();
+                  } catch (error) {
+                    console.error(error);
+                    alert("Lỗi khi đọc file hoặc import dữ liệu!");
+                  }
+                  e.target.value = ''; // Reset input
+                };
+                reader.readAsBinaryString(file);
+              }}
+            />
+            
+            <button onClick={() => {
+              // Download Template
+              const ws = XLSX.utils.aoa_to_sheet([
+                ["Mã SP", "Tên SP", "Danh mục", "Đơn vị cơ bản", "Giá vốn", "Giá bán lẻ", "Link Ảnh", "ĐV Quy đổi 1", "Hệ số 1", "Giá 1", "ĐV Quy đổi 2", "Hệ số 2", "Giá 2"],
+                ["FMCG-TEST-01", "Bia 333", "Bia - Rượu", "Lon", 10000, 12000, "", "Lốc", 6, 70000, "Thùng", 24, 270000]
+              ]);
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, "Products");
+              XLSX.writeFile(wb, "Template_Import_SanPham.xlsx");
+            }} className="flex items-center gap-2 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-sm">
+              <span className="material-symbols-outlined text-sm">download</span> Tải File Mẫu
+            </button>
+            <label htmlFor="excel-upload" className="flex items-center gap-2 bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-sm cursor-pointer">
+              <span className="material-symbols-outlined text-sm">upload_file</span> Nhập từ Excel
+            </label>
+            <button onClick={handleOpenAdd} className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-md shadow-orange-100">
+              <span className="material-symbols-outlined text-sm">add</span> Thêm sản phẩm
+            </button>
+          </div>
         )}
       </div>
 
@@ -258,8 +340,10 @@ export default function ProductsPage() {
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center transition-colors"><span className="material-symbols-outlined">close</span></button>
             </div>
             
-            <div className="p-6 space-y-4 overflow-y-auto flex-1 grid grid-cols-3 gap-x-5 gap-y-4">
-              {modalError && <p className="col-span-2 text-red-500 text-sm bg-red-50 p-3 rounded-xl border border-red-100">{modalError}</p>}
+            <div className="p-6 flex flex-col gap-6 overflow-y-auto flex-1">
+              {modalError && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl border border-red-100">{modalError}</p>}
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               {/* Cột trái: Form nhập văn bản */}
               <div className="space-y-4">
@@ -281,6 +365,13 @@ export default function ProductsPage() {
                 </div>
 
                 <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Đơn vị cơ bản (Kho) <span className="text-red-500">*</span></label>
+                  <select className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-orange-500 transition-all bg-white" value={formData.unitId || 0} onChange={(e) => setFormData({...formData, unitId: Number(e.target.value)})}>
+                    {units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Giá nhập (Giá vốn)</label>
                   <input type="number" min="0" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-orange-500 transition-all" value={formData.costPrice || ""} onChange={(e) => setFormData({...formData, costPrice: e.target.value === '' ? 0 : Number(e.target.value)})} />
                 </div>
@@ -296,15 +387,13 @@ export default function ProductsPage() {
                     Đánh dấu là Sản phẩm Mới
                   </label>
                 </div>
-
-                {/* Đã gỡ ô nhập Tồn Kho để đảm bảo đúng quy trình ERP (Kho phải nhập qua PO) */}
               </div>
 
               {/* 🎯 Cột giữa: Nhập Mô tả */}
-              <div className="flex flex-col h-full">
+              <div className="flex flex-col">
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Mô tả sản phẩm</label>
                 <textarea 
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-orange-500 transition-all flex-1 resize-none" 
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-orange-500 transition-all flex-1 min-h-[150px] resize-none" 
                   placeholder="Nhập mô tả chi tiết sản phẩm để hiển thị trên Storefront..."
                   value={formData.description} 
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
@@ -312,7 +401,7 @@ export default function ProductsPage() {
               </div>
 
               {/* 🎯 Cột phải: Chọn File ảnh và Xem trước */}
-              <div className="flex flex-col h-full">
+              <div className="flex flex-col">
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Tải ảnh từ máy tính</label>
                 <input 
                   type="file" 
@@ -322,7 +411,7 @@ export default function ProductsPage() {
                 />
 
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Xem trước hình ảnh</label>
-                <div className="flex-1 min-h-[220px] border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden p-2 relative group">
+                <div className="flex-1 min-h-[150px] border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden p-2 relative group">
                   {formData.imageUrl ? (
                     <>
                       <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-contain" />
@@ -339,6 +428,90 @@ export default function ProductsPage() {
                     </div>
                   )}
                 </div>
+              </div>
+              </div>
+
+              {/* 🎯 Section: Đơn vị Quy đổi */}
+              <div className="border-t border-gray-100 pt-4 mt-2">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-sm font-bold text-gray-800 uppercase">Đơn vị quy đổi (Tùy chọn)</label>
+                  <button 
+                    type="button" 
+                    onClick={() => setFormData({
+                      ...formData, 
+                      productUoMs: [...formData.productUoMs, { unitId: units.length > 0 ? units[0].id : 0, conversionFactor: 1, price: formData.price }]
+                    })}
+                    className="text-xs bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">add</span> Thêm quy đổi
+                  </button>
+                </div>
+                {formData.productUoMs.length > 0 ? (
+                  <div className="space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    {formData.productUoMs.map((uom, index) => (
+                      <div key={index} className="flex gap-4 items-end bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                        <div className="flex-1">
+                          <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Đơn vị</label>
+                          <select 
+                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm outline-none bg-white"
+                            value={uom.unitId}
+                            onChange={(e) => {
+                              const newUoms = [...formData.productUoMs];
+                              newUoms[index].unitId = Number(e.target.value);
+                              setFormData({ ...formData, productUoMs: newUoms });
+                            }}
+                          >
+                            {units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                          </select>
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Quy đổi ra ĐV Cơ bản</label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-2 text-xs font-bold text-gray-400">1 = </span>
+                            <input 
+                              type="number" min="1" 
+                              className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md text-sm outline-none" 
+                              value={uom.conversionFactor || ""} 
+                              onChange={(e) => {
+                                const newUoms = [...formData.productUoMs];
+                                const factor = Number(e.target.value);
+                                newUoms[index].conversionFactor = factor;
+                                // Tự động gợi ý nhân giá bán theo hệ số quy đổi
+                                newUoms[index].price = formData.price * factor;
+                                setFormData({ ...formData, productUoMs: newUoms });
+                              }} 
+                            />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Giá bán lẻ</label>
+                          <input 
+                            type="number" min="0" 
+                            className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm outline-none" 
+                            value={uom.price || ""} 
+                            onChange={(e) => {
+                              const newUoms = [...formData.productUoMs];
+                              newUoms[index].price = Number(e.target.value);
+                              setFormData({ ...formData, productUoMs: newUoms });
+                            }} 
+                          />
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            const newUoms = formData.productUoMs.filter((_, i) => i !== index);
+                            setFormData({ ...formData, productUoMs: newUoms });
+                          }}
+                          className="h-[38px] w-[38px] flex items-center justify-center text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 italic">Chưa có đơn vị quy đổi nào. Sản phẩm sẽ chỉ bán theo đơn vị cơ bản.</p>
+                )}
               </div>
             </div>
 

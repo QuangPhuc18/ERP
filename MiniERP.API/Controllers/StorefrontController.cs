@@ -62,6 +62,7 @@ namespace MiniERP.API.Controllers
                     p.ProductCode,
                     p.ProductName,
                     p.Price,
+                    p.Quantity, // 🎯 LUÔN TRẢ VỀ TỒN KHO ĐỂ CHECK HẾT HÀNG
                     p.ImageUrl,
                     p.ViewCount,
                     p.IsNew,

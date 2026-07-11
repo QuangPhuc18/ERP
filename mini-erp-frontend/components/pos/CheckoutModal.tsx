@@ -85,9 +85,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </div>
             {completedOrder.cart.map((item: CartItem, idx: number) => (
               <div key={idx} className="flex mb-1 items-start">
-                <div className="w-1/2 pr-1">{item.productName}</div>
+                <div className="w-1/2 pr-1">{item.productName} {item.selectedUnitName ? `(${item.selectedUnitName})` : ''}</div>
                 <div className="w-1/4 text-center">{item.cartQuantity}</div>
-                <div className="w-1/4 text-right">{fmt(item.price * item.cartQuantity).replace('đ','')}</div>
+                <div className="w-1/4 text-right">{fmt((item.selectedPrice ?? item.price) * item.cartQuantity).replace('đ','')}</div>
               </div>
             ))}
           </div>

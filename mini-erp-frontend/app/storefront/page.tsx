@@ -13,6 +13,7 @@ interface Product {
   price: number;
   imageUrl: string;
   categoryName: string;
+  quantity: number;
 }
 
 interface Category {
@@ -104,6 +105,11 @@ export default function StorefrontHomePage() {
                       <span className="material-symbols-outlined text-5xl">image</span>
                     </div>
                   )}
+                  {product.quantity <= 0 && (
+                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
+                      <span className="bg-gray-900 text-white font-sf-body text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg">Hết hàng</span>
+                    </div>
+                  )}
                 </Link>
                 <div className="flex-1 flex flex-col">
                   <span className="font-sf-body text-xs font-semibold text-sf-on-surface-variant mb-1 uppercase tracking-widest line-clamp-1">
@@ -119,8 +125,10 @@ export default function StorefrontHomePage() {
                       {product.price.toLocaleString("vi-VN")} ₫
                     </span>
                     <button
+                      disabled={product.quantity <= 0}
                       onClick={(e) => {
                         e.preventDefault();
+                        if (product.quantity <= 0) return;
                         addToCart({
                           productId: product.id,
                           productName: product.productName,
@@ -128,8 +136,12 @@ export default function StorefrontHomePage() {
                           imageUrl: product.imageUrl || ""
                         });
                       }}
-                      className="w-8 h-8 rounded-full border border-sf-primary text-sf-primary flex items-center justify-center hover:bg-sf-primary hover:text-sf-on-primary transition-colors"
-                      title="Thêm vào giỏ"
+                      className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors ${
+                        product.quantity <= 0 
+                          ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50' 
+                          : 'border-sf-primary text-sf-primary hover:bg-sf-primary hover:text-sf-on-primary'
+                      }`}
+                      title={product.quantity <= 0 ? "Hết hàng" : "Thêm vào giỏ"}
                     >
                       <span className="material-symbols-outlined text-sm">add</span>
                     </button>

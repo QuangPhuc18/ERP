@@ -14,6 +14,7 @@ interface Product {
   categoryName: string;
   quantity: number;
   productCode: string;
+  description?: string;
 }
 
 export default function ProductDetailPage() {
@@ -60,8 +61,8 @@ export default function ProductDetailPage() {
       productName: product.productName,
       price: product.price,
       imageUrl: product.imageUrl || "",
-      quantity: qty
-    });
+      categoryName: product.categoryName
+    }, qty);
     // Hiển thị thông báo hoặc chuyển hướng
     alert(`Đã thêm ${qty} ${product.productName} vào giỏ hàng!`);
   };
@@ -122,8 +123,8 @@ export default function ProductDetailPage() {
           <h1 className="font-sf-display text-4xl md:text-5xl font-extrabold text-sf-primary mb-2">
             {product.productName}
           </h1>
-          <p className="font-sf-body text-lg text-sf-on-surface-variant mb-6">
-            Sản phẩm chính hãng chất lượng cao. Đảm bảo nguồn gốc xuất xứ rõ ràng và được kiểm định nghiêm ngặt trước khi đến tay người tiêu dùng.
+          <p className="font-sf-body text-lg text-sf-on-surface-variant mb-6 whitespace-pre-line">
+            {product.description || "Sản phẩm chính hãng chất lượng cao. Đảm bảo nguồn gốc xuất xứ rõ ràng và được kiểm định nghiêm ngặt trước khi đến tay người tiêu dùng."}
           </p>
           <div className="flex items-end gap-2 mb-8">
             <span className="font-sf-display text-3xl font-bold text-sf-primary">
@@ -153,13 +154,19 @@ export default function ProductDetailPage() {
                 <span className="material-symbols-outlined">add</span>
               </button>
             </div>
-            
             <button 
+              disabled={product.quantity <= 0}
               onClick={handleAddToCart}
-              className="flex-grow bg-[#E67E22] text-white py-4 px-8 rounded-full font-sf-display text-lg font-bold hover:bg-[#D35400] transition-colors flex items-center justify-center gap-2"
+              className={`flex-grow py-4 px-8 rounded-full font-sf-display text-lg font-bold transition-colors flex items-center justify-center gap-2 ${
+                product.quantity <= 0 
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  : 'bg-[#E67E22] text-white hover:bg-[#D35400]'
+              }`}
             >
-              <span className="material-symbols-outlined">shopping_bag</span>
-              Add to Cart
+              <span className="material-symbols-outlined">
+                {product.quantity <= 0 ? 'remove_shopping_cart' : 'shopping_bag'}
+              </span>
+              {product.quantity <= 0 ? 'Tạm Hết Hàng' : 'Thêm Vào Giỏ'}
             </button>
           </div>
           
@@ -172,7 +179,7 @@ export default function ProductDetailPage() {
           <div className="flex items-center gap-4 mt-2 text-sf-on-surface-variant font-sf-body text-base">
              <span className="flex items-center gap-1">
                <span className="material-symbols-outlined text-sf-primary-container">verified</span> 
-               Bảo hành chính hãng 12 tháng
+               Đảm bảo chất lượng & Vệ sinh ATTP
              </span>
           </div>
         </div>
@@ -194,31 +201,31 @@ export default function ProductDetailPage() {
             Thông số
           </button>
           <button 
-            onClick={() => setActiveTab("warranty")}
-            className={`font-sf-display text-2xl font-bold pb-4 transition-colors ${activeTab === "warranty" ? "text-sf-primary border-b-2 border-sf-primary" : "text-sf-on-surface-variant hover:text-sf-primary"}`}
+            onClick={() => setActiveTab("storage")}
+            className={`font-sf-display text-2xl font-bold pb-4 transition-colors ${activeTab === "storage" ? "text-sf-primary border-b-2 border-sf-primary" : "text-sf-on-surface-variant hover:text-sf-primary"}`}
           >
-            Bảo hành
+            Bảo quản
           </button>
         </div>
         
         <div className="font-sf-body text-lg text-sf-on-surface-variant max-w-3xl leading-relaxed">
           {activeTab === "details" && (
             <>
-              <p className="mb-4">
-                Sản phẩm {product.productName} mang đến trải nghiệm tuyệt vời cho người sử dụng với thiết kế hiện đại, độ bền cao và các tính năng ưu việt.
+              <p className="mb-4 whitespace-pre-line">
+                {product.description || `Sản phẩm ${product.productName} là sự lựa chọn hoàn hảo cho bữa ăn gia đình. Được sản xuất và đóng gói theo quy trình khép kín, đảm bảo giữ trọn hương vị tự nhiên và giá trị dinh dưỡng cao.`}
               </p>
               <ul className="space-y-2 mt-6">
                 <li className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-sf-primary-container mt-1">check_circle</span>
-                  <span>Chất liệu an toàn, thân thiện với môi trường.</span>
+                  <span>Cam kết hàng chính hãng, rõ nguồn gốc xuất xứ.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-sf-primary-container mt-1">check_circle</span>
-                  <span>Thiết kế tối giản, phù hợp với mọi không gian nội thất.</span>
+                  <span>Đạt tiêu chuẩn chất lượng và Vệ sinh an toàn thực phẩm.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-sf-primary-container mt-1">check_circle</span>
-                  <span>Dễ dàng vệ sinh và bảo quản.</span>
+                  <span>Bao bì đóng gói cẩn thận, dễ dàng sử dụng.</span>
                 </li>
               </ul>
             </>
@@ -243,19 +250,23 @@ export default function ProductDetailPage() {
               </table>
             </div>
           )}
-          {activeTab === "warranty" && (
+          {activeTab === "storage" && (
             <>
               <p className="mb-4">
-                Chính sách bảo hành áp dụng cho tất cả các sản phẩm mua tại MiniERP. 
+                Để đảm bảo chất lượng sản phẩm tốt nhất, vui lòng lưu ý các thông tin bảo quản dưới đây:
               </p>
               <ul className="space-y-2 mt-6">
                 <li className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-sf-primary-container mt-1">info</span>
-                  <span>1 đổi 1 trong vòng 30 ngày nếu có lỗi từ nhà sản xuất.</span>
+                  <span>Bảo quản nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-sf-primary-container mt-1">info</span>
-                  <span>Bảo hành phần cứng 12 tháng tại các trung tâm uỷ quyền.</span>
+                  <span>Sau khi mở bao bì, nên bảo quản trong tủ lạnh (nếu là thực phẩm dễ hỏng) hoặc đậy kín.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-sf-primary-container mt-1">info</span>
+                  <span>Lưu ý hạn sử dụng in trên bao bì sản phẩm.</span>
                 </li>
               </ul>
             </>

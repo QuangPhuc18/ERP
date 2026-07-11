@@ -6,11 +6,13 @@ export interface OrderDetailDTO {
   productName?: string; // Có thể null khi gửi lên, chỉ dùng để hiển thị UI
   quantity: number;
   unitPrice: number;
+  unitId?: number | null;
 }
 
 // 2. Kiểu dữ liệu khi gửi API tạo Đơn hàng mới
 export interface OrderCreateDTO {
   customerId: number | null;
+  workShiftId?: number | null;
   totalAmount?: number;
   amountPaid?: number;
   paymentMethod?: string;

@@ -48,6 +48,32 @@ namespace MiniERP.API.Data
                 .WithMany()
                 .HasForeignKey(sp => sp.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // 4. Seeding Data cho Units
+            modelBuilder.Entity<Unit>().HasData(
+                new Unit { Id = 1, Name = "Cái", Description = "Đơn vị đếm chung" },
+                new Unit { Id = 2, Name = "Hộp", Description = "Hộp giấy/nhựa" },
+                new Unit { Id = 3, Name = "Lon", Description = "Lon nhôm/sắt" },
+                new Unit { Id = 4, Name = "Chai", Description = "Chai nhựa/thủy tinh" },
+                new Unit { Id = 5, Name = "Ly", Description = "Ly/Cốc nhựa" },
+                new Unit { Id = 6, Name = "Gói", Description = "Gói nilon/giấy" },
+                new Unit { Id = 7, Name = "Bịch", Description = "Bịch lớn" },
+                new Unit { Id = 8, Name = "Tuýp", Description = "Tuýp kem/sữa" },
+                new Unit { Id = 9, Name = "Lốc", Description = "Lốc 4-6 hộp/chai" },
+                new Unit { Id = 10, Name = "Vỉ", Description = "Vỉ trứng/thuốc" },
+                new Unit { Id = 11, Name = "Thùng", Description = "Thùng carton" },
+                new Unit { Id = 12, Name = "Két", Description = "Két nhựa đựng chai" },
+                new Unit { Id = 13, Name = "Dây", Description = "Dây nhiều gói nhỏ" },
+                new Unit { Id = 14, Name = "Kg", Description = "Kilogram" },
+                new Unit { Id = 15, Name = "Gram", Description = "Gram" }
+            );
+
+            // Cấu hình ProductUoM để xóa Product thì xóa luôn ProductUoM (Cascade) nhưng Unit thì Restrict
+            modelBuilder.Entity<ProductUoM>()
+                .HasOne(p => p.Unit)
+                .WithMany()
+                .HasForeignKey(p => p.UnitId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Customer> Customers { get; set; }
@@ -66,5 +92,7 @@ namespace MiniERP.API.Data
         public DbSet<StockTakeDetail> StockTakeDetails { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Banner> Banners { get; set; }
+        public DbSet<Unit> Units { get; set; }
+        public DbSet<ProductUoM> ProductUoMs { get; set; }
     }
 }

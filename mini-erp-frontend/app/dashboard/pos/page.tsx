@@ -72,6 +72,7 @@ export default function POSPage() {
         setShowCustModal={state.setShowCustModal}
         selectedCustomer={state.selectedCustomer}
         updateQty={state.updateQty}
+        updateUnit={state.updateUnit}
         removeItem={state.removeItem}
         subtotal={state.subtotal}
         totalAmount={state.totalAmount}

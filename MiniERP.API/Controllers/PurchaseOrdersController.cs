@@ -50,6 +50,7 @@ namespace MiniERP.API.Controllers
                         pod.ProductId,
                         ProductName = pod.Product != null ? pod.Product.ProductName : "Sản phẩm đã xóa",
                         pod.Quantity,
+                        UnitName = pod.UnitName ?? "Đơn vị cơ bản",
                         pod.UnitPrice,
                         SubTotal = pod.Quantity * pod.UnitPrice
                     })
@@ -85,11 +86,27 @@ namespace MiniERP.API.Controllers
                 if (product == null)
                     return BadRequest($"Sản phẩm có ID {item.ProductId} không tồn tại trên hệ thống!");
 
+                int conversionFactor = 1;
+                string? unitName = null;
+
+                if (item.UnitId.HasValue)
+                {
+                    var uom = await _context.ProductUoMs.FirstOrDefaultAsync(u => u.UnitId == item.UnitId.Value && u.ProductId == item.ProductId);
+                    if (uom != null)
+                    {
+                        conversionFactor = uom.ConversionFactor;
+                        var unit = await _context.Units.FindAsync(uom.UnitId);
+                        if (unit != null) unitName = unit.Name;
+                    }
+                }
+
                 var detail = new PurchaseOrderDetail
                 {
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice
+                    UnitPrice = item.UnitPrice,
+                    ConversionFactor = conversionFactor,
+                    UnitName = unitName
                 };
 
                 purchaseOrder.TotalAmount += (item.Quantity * item.UnitPrice);
@@ -142,12 +159,28 @@ namespace MiniERP.API.Controllers
                 if (product == null)
                     return BadRequest($"Sản phẩm có ID {item.ProductId} không tồn tại trên hệ thống!");
 
+                int conversionFactor = 1;
+                string? unitName = null;
+
+                if (item.UnitId.HasValue)
+                {
+                    var uom = await _context.ProductUoMs.FirstOrDefaultAsync(u => u.UnitId == item.UnitId.Value && u.ProductId == item.ProductId);
+                    if (uom != null)
+                    {
+                        conversionFactor = uom.ConversionFactor;
+                        var unit = await _context.Units.FindAsync(uom.UnitId);
+                        if (unit != null) unitName = unit.Name;
+                    }
+                }
+
                 var detail = new PurchaseOrderDetail
                 {
                     PurchaseOrderId = po.Id,
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice
+                    UnitPrice = item.UnitPrice,
+                    ConversionFactor = conversionFactor,
+                    UnitName = unitName
                 };
 
                 po.TotalAmount += (item.Quantity * item.UnitPrice);
@@ -187,7 +220,8 @@ namespace MiniERP.API.Controllers
                     if (product != null)
                     {
                         // 🎯 KẾT HỢP NGHIỆP VỤ KẾ TOÁN: TÍNH GIÁ VỐN BÌNH QUÂN GIA QUYỀN (MAC)
-                        int totalNewQuantity = product.Quantity + detail.Quantity;
+                        int baseQuantity = detail.Quantity * (detail.ConversionFactor > 0 ? detail.ConversionFactor : 1);
+                        int totalNewQuantity = product.Quantity + baseQuantity;
                         
                         if (totalNewQuantity > 0)
                         {
@@ -198,11 +232,11 @@ namespace MiniERP.API.Controllers
                         }
                         else
                         {
-                            product.CostPrice = detail.UnitPrice;
+                            product.CostPrice = detail.UnitPrice / (detail.ConversionFactor > 0 ? detail.ConversionFactor : 1);
                         }
 
                         // 🎯 CỘNG DỒN SỐ LƯỢNG KHO THỰC TẾ
-                        product.Quantity += detail.Quantity;
+                        product.Quantity += baseQuantity;
                         _context.Products.Update(product);
 
                         // 🎯 Ghi nhật ký tồn kho (IMPORT)
@@ -211,9 +245,9 @@ namespace MiniERP.API.Controllers
                             TransactionDate = DateTime.Now,
                             ProductId = product.Id,
                             TransactionType = "IMPORT",
-                            Quantity = detail.Quantity,
+                            Quantity = baseQuantity,
                             ReferenceId = po.Id,
-                            Note = $"Duyệt Nhập kho từ NCC {po.Supplier?.Name}"
+                            Note = $"Duyệt Nhập kho từ NCC {po.Supplier?.Name} ({detail.Quantity} {detail.UnitName ?? "Đơn vị cơ bản"})"
                         });
                     }
                 }
