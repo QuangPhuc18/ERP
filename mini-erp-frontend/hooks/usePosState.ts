@@ -45,7 +45,7 @@ export const usePosState = () => {
   const [activeCategory, setActiveCategory] = useState("Tất cả");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 6;
+  const ITEMS_PER_PAGE = 10;
 
   const [currentTime, setCurrentTime] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
@@ -58,6 +58,7 @@ export const usePosState = () => {
   const [currentShift, setCurrentShift] = useState<WorkShiftDTO | null>(null);
   const [showStartShiftModal, setShowStartShiftModal] = useState(false);
   const [showEndShiftModal, setShowEndShiftModal] = useState(false);
+  const [showOrderHistoryModal, setShowOrderHistoryModal] = useState(false);
   const [shiftSummary, setShiftSummary] = useState({
     cash: 0,
     transfer: 0,
@@ -349,7 +350,7 @@ export const usePosState = () => {
     showCheckoutModal, setShowCheckoutModal, amountPaidStr, setAmountPaidStr,
     completedOrder, setCompletedOrder,
     showStartShiftModal, setShowStartShiftModal, currentShift, setCurrentShift,
-    showEndShiftModal, setShowEndShiftModal, shiftSummary, setShiftSummary,
+    showEndShiftModal, setShowEndShiftModal, showOrderHistoryModal, setShowOrderHistoryModal, shiftSummary, setShiftSummary,
     customers, setCustomers, showCustModal, setShowCustModal, custSearchQuery, setCustSearchQuery,
     newCustName, setNewCustName, newCustPhone, setNewCustPhone,
     categories, fetchProducts, fetchCustomers,

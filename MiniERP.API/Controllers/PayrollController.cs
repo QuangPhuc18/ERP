@@ -47,6 +47,7 @@ namespace MiniERP.API.Controllers
                     Id = s.Id,
                     EmployeeName = s.Employee.FullName,
                     TotalWorkDays = s.TotalWorkDays,
+                    TotalHours = s.TotalHours,
                     TotalAmount = s.TotalAmount,
                     CalculatedAt = s.CalculatedAt,
                     IsPaid = s.IsPaid // 🎯 THÊM DÒNG NÀY ĐỂ FRONTEND BIẾT TRẠNG THÁI

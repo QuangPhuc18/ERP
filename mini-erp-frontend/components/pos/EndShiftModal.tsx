@@ -48,7 +48,8 @@ export const EndShiftModal: React.FC<EndShiftModalProps> = ({
       setTimeout(() => {
         window.print();
         setShowEndShiftModal(false);
-        // Có thể reload trang để đăng xuất nếu muốn
+        // 🎯 FIX: Đẩy về Dashboard để nhân viên biết ca đã đóng thành công, thay vì kẹt lại POS
+        window.location.href = "/dashboard";
       }, 500);
 
     } catch (err: any) {

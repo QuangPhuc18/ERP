@@ -9,6 +9,7 @@ import { CheckoutModal } from "../../../components/pos/CheckoutModal";
 import { EndShiftModal } from "../../../components/pos/EndShiftModal";
 import { CustomerModal } from "../../../components/pos/CustomerModal";
 import StartShiftModal from "../../../components/pos/StartShiftModal";
+import { OrderHistoryModal } from "../../../components/pos/OrderHistoryModal";
 
 export default function POSPage() {
   const state = usePosState();
@@ -41,6 +42,7 @@ export default function POSPage() {
           searchQuery={state.searchQuery}
           setSearchQuery={state.setSearchQuery}
           setShowEndShiftModal={state.setShowEndShiftModal}
+          setShowOrderHistoryModal={state.setShowOrderHistoryModal}
         />
 
         <ProductGrid 
@@ -131,6 +133,11 @@ export default function POSPage() {
           }}
         />
       )}
+
+      <OrderHistoryModal
+        showModal={state.showOrderHistoryModal}
+        setShowModal={state.setShowOrderHistoryModal}
+      />
 
       <style dangerouslySetInnerHTML={{__html: `
         @media print {

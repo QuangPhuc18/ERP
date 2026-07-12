@@ -229,9 +229,13 @@ export default function PayrollPage() {
                   <td className="p-4 text-sm font-medium text-gray-500">#{record.id}</td>
                   <td className="p-4 font-medium text-gray-800">{record.employeeName}</td>
                   <td className="p-4 text-gray-600">
-                    {record.totalWorkDays > 0 && <span className="block">{record.totalWorkDays} ngày</span>}
-                    {record.totalHours > 0 && <span className="block text-blue-600">{record.totalHours} giờ</span>}
-                    {record.totalWorkDays === 0 && record.totalHours === 0 && <span>0</span>}
+                    {record.totalWorkDays > 0 ? (
+                      <span className="block">{record.totalWorkDays} ngày</span>
+                    ) : record.totalHours > 0 ? (
+                      <span className="block text-blue-600">{record.totalHours} giờ</span>
+                    ) : (
+                      <span>0 ngày</span>
+                    )}
                   </td>
                   <td className="p-4 text-right font-medium text-amber-600">
                     {record.advanceDeducted > 0 ? `- ${record.advanceDeducted.toLocaleString('vi-VN')} đ` : '-'}

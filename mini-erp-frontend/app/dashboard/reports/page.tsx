@@ -38,9 +38,10 @@ export default function DailyReportPage() {
   // Lọc dữ liệu theo ngày
   const filteredData = data.filter(item => {
     if (!filterDate) return true;
-    // Chuyển đổi item.startTime sang định dạng YYYY-MM-DD theo giờ địa phương
-    const d = new Date(item.startTime);
-    // YYYY-MM-DD
+    
+    // 🎯 FIX: Khi đóng ca, ca sẽ thuộc về ngày đóng (EndTime). Nếu chưa đóng, lấy StartTime.
+    const targetDate = item.endTime ? item.endTime : item.startTime;
+    const d = new Date(targetDate);
     const localDateStr = d.toLocaleDateString("en-CA"); // "en-CA" format là YYYY-MM-DD
     return localDateStr === filterDate;
   });

@@ -48,6 +48,50 @@ namespace MiniERP.API.Controllers
             return Ok(orders);
         }
 
+        // 1.5 Lấy danh sách hóa đơn trong ca làm việc HIỆN TẠI của nhân viên
+        [HttpGet("CurrentShift")]
+        public async Task<IActionResult> GetCurrentShiftOrders()
+        {
+            var empIdClaim = User.FindFirst("EmployeeId")?.Value;
+            if (!int.TryParse(empIdClaim, out int empId)) return BadRequest("Không tìm thấy thông tin nhân viên trong Token!");
+
+            var currentShift = await _context.WorkShifts
+                .Where(s => s.EmployeeId == empId && s.Status == "Open")
+                .OrderByDescending(s => s.StartTime)
+                .FirstOrDefaultAsync();
+
+            if (currentShift == null)
+            {
+                return Ok(new List<object>()); // Trả về list rỗng nếu chưa mở ca
+            }
+
+            var orders = await _context.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Product)
+                .Where(o => o.WorkShiftId == currentShift.Id)
+                .Select(o => new {
+                    o.Id,
+                    CustomerName = o.Customer != null ? o.Customer.FullName : "Khách vãng lai",
+                    o.OrderDate,
+                    o.TotalAmount,
+                    o.AmountPaid,
+                    o.PaymentMethod,
+                    o.Note,
+                    o.Status,
+                    Details = o.OrderDetails.Select(od => new {
+                        ProductName = od.Product != null ? od.Product.ProductName : "SP đã xóa",
+                        od.Quantity,
+                        od.UnitPrice,
+                        SubTotal = od.Quantity * od.UnitPrice
+                    })
+                })
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            return Ok(orders);
+        }
+
         // 2. Tạo Hóa đơn & Trừ tồn kho (BÁN HÀNG POS)
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] OrderCreateDTO dto)

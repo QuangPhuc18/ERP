@@ -27,6 +27,7 @@ export interface OrderDTO {
   orderDate: string;
   totalAmount: number;
   status: string; // "Completed" hoặc "Cancelled"
+  paymentMethod?: string;
   details?: OrderDetailDTO[];
 }
 
@@ -34,6 +35,12 @@ const OrderService = {
   // Lấy danh sách toàn bộ hóa đơn
   getAll: async (): Promise<OrderDTO[]> => {
     const response = await httpAxios.get("/Orders");
+    return response.data;
+  },
+
+  // Lấy danh sách hóa đơn trong ca hiện tại
+  getCurrentShiftOrders: async (): Promise<OrderDTO[]> => {
+    const response = await httpAxios.get("/Orders/CurrentShift");
     return response.data;
   },
 

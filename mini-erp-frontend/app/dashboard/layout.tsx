@@ -54,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ]
     },
     {
-      title: "Kho & Công Nợ",
+      title: "Kho hàng",
       icon: "inventory_2",
       items: [
         { name: "Kho Sản phẩm", path: "/dashboard/products", icon: "inventory_2" },

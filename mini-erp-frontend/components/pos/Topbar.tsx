@@ -7,9 +7,10 @@ interface TopbarProps {
   searchQuery: string;
   setSearchQuery: (val: string) => void;
   setShowEndShiftModal: (val: boolean) => void;
+  setShowOrderHistoryModal: (val: boolean) => void;
 }
 
-export const Topbar: React.FC<TopbarProps> = ({ currentTime, searchQuery, setSearchQuery, setShowEndShiftModal }) => {
+export const Topbar: React.FC<TopbarProps> = ({ currentTime, searchQuery, setSearchQuery, setShowEndShiftModal, setShowOrderHistoryModal }) => {
   return (
     <div className="h-auto lg:h-20 bg-white/90 backdrop-blur-md border-b border-gray-100 flex flex-col lg:flex-row items-stretch lg:items-center gap-4 p-5 lg:px-8 shrink-0 z-20">
       <div className="flex items-center justify-between">
@@ -18,6 +19,9 @@ export const Topbar: React.FC<TopbarProps> = ({ currentTime, searchQuery, setSea
           <span className="text-[10px] text-orange-600 font-bold bg-orange-50 px-2.5 py-1 rounded-full uppercase tracking-widest border border-orange-100/50">Quầy #01</span>
         </div>
         <div className="flex items-center gap-2 lg:hidden">
+          <button onClick={() => setShowOrderHistoryModal(true)} className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-100" title="Lịch sử đơn">
+            <span className="material-symbols-outlined text-[18px] block">receipt_long</span>
+          </button>
           <button onClick={() => setShowEndShiftModal(true)} className="p-2 bg-gray-900 text-white rounded-lg" title="Đóng ca">
             <span className="material-symbols-outlined text-[18px] block">lock_clock</span>
           </button>
@@ -46,6 +50,9 @@ export const Topbar: React.FC<TopbarProps> = ({ currentTime, searchQuery, setSea
           <span className="material-symbols-outlined text-[18px]">schedule</span>
           {currentTime}
         </span>
+        <button onClick={() => setShowOrderHistoryModal(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm font-bold rounded-xl transition-all shadow-sm active:scale-95 tracking-wide">
+          <span className="material-symbols-outlined text-[18px]">receipt_long</span> LỊCH SỬ ĐƠN
+        </button>
         <button onClick={() => setShowEndShiftModal(true)} className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-xl transition-all shadow-sm active:scale-95 tracking-wide">
           <span className="material-symbols-outlined text-[18px]">lock_clock</span> ĐÓNG CA
         </button>

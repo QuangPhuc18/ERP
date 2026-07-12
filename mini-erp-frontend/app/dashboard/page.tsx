@@ -153,7 +153,15 @@ export default function DashboardPage() {
               <BarChart data={data.revenueByMonth} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `${val / 1000000}M`} />
+                {/* 🎯 SỬA LỖI TRỤC Y: Chốt cứng các mốc tiền phù hợp tiệm tạp hóa và đổi M thành tr */}
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 12, fill: '#64748b' }} 
+                  ticks={[0, 500000, 1000000, 3000000, 5000000, 7000000, 10000000, 15000000]}
+                  domain={[0, 15000000]}
+                  tickFormatter={(val) => val >= 1000000 ? `${val / 1000000}tr` : val === 0 ? "0" : `${val / 1000}k`} 
+                />
                 {/* 🎯 SỬA LỖI FORMATTER: Ép kiểu dữ liệu an toàn */}
                 <Tooltip formatter={(value: unknown) => fmt(Number(value))} cursor={{ fill: '#f8fafc' }} />
                 <Bar name="Doanh thu" dataKey="revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={40} />

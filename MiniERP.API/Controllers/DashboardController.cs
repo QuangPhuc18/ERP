@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.API.Data;
@@ -25,7 +25,14 @@ namespace MiniERP.API.Controllers
         {
             var now = DateTime.Now;
             var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
+            
+            // Mặc định lấy 6 tháng, nhưng GIỚI HẠN không lấy trước tháng 7/2026
             var sixMonthsAgo = new DateTime(now.Year, now.Month, 1).AddMonths(-5);
+            var startOfT7 = new DateTime(2026, 7, 1);
+            if (sixMonthsAgo < startOfT7)
+            {
+                sixMonthsAgo = startOfT7;
+            }
 
             // 1. KPI Cards
             var totalProducts = await _context.Products.CountAsync();
