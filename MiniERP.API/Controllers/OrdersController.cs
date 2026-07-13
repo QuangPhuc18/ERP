@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using MiniERP.API.Data;
 using MiniERP.API.DTOs;
 using MiniERP.API.Entities;
+using Microsoft.AspNetCore.SignalR;
+using MiniERP.API.Hubs;
 
 namespace MiniERP.API.Controllers
 {
@@ -13,8 +15,13 @@ namespace MiniERP.API.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IHubContext<AppHub> _hubContext;
 
-        public OrdersController(AppDbContext context) => _context = context;
+        public OrdersController(AppDbContext context, IHubContext<AppHub> hubContext)
+        {
+            _context = context;
+            _hubContext = hubContext;
+        }
 
         // 1. Lấy danh sách Hóa đơn
         [HttpGet]
@@ -124,10 +131,10 @@ namespace MiniERP.API.Controllers
                     EmployeeId = employeeId,
                     WorkShiftId = dto.WorkShiftId,
                     OrderDate = DateTime.Now,
-                    AmountPaid = dto.AmountPaid,
+                    AmountPaid = dto.PaymentMethod == "Transfer" ? 0 : dto.AmountPaid,
                     PaymentMethod = dto.PaymentMethod,
                     Note = dto.Note,
-                    Status = "Completed", // Sẽ được kiểm tra lại ở dưới
+                    Status = dto.PaymentMethod == "Transfer" ? "PendingPayment" : "Completed", // Sẽ được kiểm tra lại ở dưới
                     TotalAmount = 0 // Sẽ được tính lại ở dưới để đảm bảo bảo mật
                 };
 
@@ -181,7 +188,7 @@ namespace MiniERP.API.Controllers
                 }
 
                 // Xác định trạng thái công nợ
-                if (order.AmountPaid < order.TotalAmount)
+                if (order.PaymentMethod != "Transfer" && order.AmountPaid < order.TotalAmount)
                 {
                     order.Status = "Debt"; // Ghi nợ nếu trả chưa đủ
                 }
@@ -213,6 +220,9 @@ namespace MiniERP.API.Controllers
                 await _context.SaveChangesAsync();
                 
                 await transaction.CommitAsync();
+
+                // Bắn thông báo Realtime để cập nhật tồn kho cho các máy POS khác
+                await _hubContext.Clients.All.SendAsync("InventoryUpdated");
 
                 return Ok(new
                 {
@@ -265,6 +275,79 @@ namespace MiniERP.API.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(new { Message = "Hủy đơn và hoàn kho thành công!" });
+        }
+
+        // 4. Lấy chi tiết đơn hàng
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetOrder(int id)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.OrderDetails)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null) return NotFound();
+
+            return Ok(new {
+                order.Id,
+                order.Status,
+                order.TotalAmount,
+                order.AmountPaid,
+                order.PaymentMethod
+            });
+        }
+
+        // 5. Xác nhận thanh toán thủ công (Dự phòng)
+        [HttpPut("{id}/complete")]
+        public async Task<IActionResult> ManualConfirmOrder(int id)
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null) return NotFound("Không tìm thấy đơn hàng");
+            if (order.Status == "Completed") return BadRequest("Đơn hàng đã hoàn thành trước đó");
+
+            order.Status = "Completed";
+            order.AmountPaid = order.TotalAmount; // Đã trả đủ
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Đã xác nhận thanh toán thành công!" });
+        }
+
+        // 6. Webhook nhận tiền từ SePay / VietQR
+        [HttpPost("webhook/sepay")]
+        public async Task<IActionResult> SePayWebhook([FromBody] SePayWebhookDTO dto)
+        {
+            if (dto == null || string.IsNullOrEmpty(dto.content))
+                return BadRequest("Dữ liệu webhook không hợp lệ");
+
+            if (dto.transferType != "in")
+                return Ok(new { Message = "Bỏ qua giao dịch tiền ra" });
+
+            // Trích xuất mã đơn hàng. Regex tìm "DH105" -> id = 105
+            var match = System.Text.RegularExpressions.Regex.Match(dto.content, @"DH(\d+)");
+            if (match.Success)
+            {
+                int orderId = int.Parse(match.Groups[1].Value);
+                var order = await _context.Orders.FindAsync(orderId);
+                
+                if (order != null && order.Status == "PendingPayment")
+                {
+                    order.AmountPaid += dto.transferAmount;
+                    
+                    if (order.AmountPaid >= order.TotalAmount)
+                    {
+                        order.Status = "Completed";
+                    }
+                    
+                    await _context.SaveChangesAsync();
+                    
+                    // Phát thông báo Realtime cho các máy POS
+                    await _hubContext.Clients.All.SendAsync("PaymentReceived", orderId, dto.transferAmount);
+                    
+                    return Ok(new { Message = $"Đã cập nhật trạng thái đơn hàng {orderId}" });
+                }
+            }
+
+            return Ok(new { Message = "Không khớp được đơn hàng nào" });
         }
     }
 }

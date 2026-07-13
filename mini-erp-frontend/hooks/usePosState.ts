@@ -17,7 +17,51 @@ export const usePosState = () => {
   }]);
   const [activeTabId, setActiveTabId] = useState<string>("1");
   const [tabCounter, setTabCounter] = useState(2);
+  const [isLoadedFromStorage, setIsLoadedFromStorage] = useState(false);
   const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  // --- LOCAL STORAGE PERSISTENCE ---
+  // Tải dữ liệu từ localStorage khi mount
+  useEffect(() => {
+    try {
+      const savedTabs = localStorage.getItem("pos_tabs");
+      const savedActiveTabId = localStorage.getItem("pos_activeTabId");
+      const savedTabCounter = localStorage.getItem("pos_tabCounter");
+
+      if (savedTabs) setTabs(JSON.parse(savedTabs));
+      if (savedActiveTabId) setActiveTabId(savedActiveTabId);
+      if (savedTabCounter) setTabCounter(Number(savedTabCounter));
+    } catch (e) {
+      console.error("Lỗi đọc POS localStorage", e);
+    }
+    setIsLoadedFromStorage(true);
+  }, []);
+
+  // Lưu dữ liệu xuống localStorage mỗi khi có thay đổi
+  useEffect(() => {
+    if (!isLoadedFromStorage) return; // Không lưu đè khi chưa load xong
+    localStorage.setItem("pos_tabs", JSON.stringify(tabs));
+    localStorage.setItem("pos_activeTabId", activeTabId);
+    localStorage.setItem("pos_tabCounter", String(tabCounter));
+  }, [tabs, activeTabId, tabCounter, isLoadedFromStorage]);
+
+  // Đồng bộ đa Tab (Cross-tab sync)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "pos_tabs" && e.newValue) {
+        setTabs(JSON.parse(e.newValue));
+      }
+      if (e.key === "pos_activeTabId" && e.newValue) {
+        setActiveTabId(e.newValue);
+      }
+      if (e.key === "pos_tabCounter" && e.newValue) {
+        setTabCounter(Number(e.newValue));
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+  // ---------------------------------
 
   const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0];
   const { cart, discountValue, discountType, note, selectedCustomer } = activeTab;
@@ -53,6 +97,7 @@ export const usePosState = () => {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [amountPaidStr, setAmountPaidStr] = useState("");
   const [completedOrder, setCompletedOrder] = useState<Record<string, any> | null>(null);
+  const [pendingPaymentOrder, setPendingPaymentOrder] = useState<{orderId: number, totalAmount: number, orderData: any} | null>(null);
 
   // Tính năng Quản lý Ca (WorkShift)
   const [currentShift, setCurrentShift] = useState<WorkShiftDTO | null>(null);
@@ -142,7 +187,7 @@ export const usePosState = () => {
     setIsProcessing(true);
     const amountPaid = parseInt(amountPaidStr || "0", 10);
     try {
-      await OrderService.create({
+      const res = await OrderService.create({
         customerId: selectedCustomer ? selectedCustomer.id : null,
         workShiftId: currentShift?.id || null,
         totalAmount,
@@ -161,6 +206,23 @@ export const usePosState = () => {
       const ddmm = String(today.getDate()).padStart(2, '0') + String(today.getMonth() + 1).padStart(2, '0');
       const generatedOrderCode = `POS01-${ddmm}-${String(orderNum).padStart(4, "0")}`;
 
+      const orderData = {
+        orderNum: generatedOrderCode,
+        cart: [...cart],
+        subtotal,
+        discountAmount,
+        totalAmount,
+        amountPaid,
+        customer: selectedCustomer,
+        date: new Date().toLocaleString("vi-VN", { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
+      };
+
+      if (paymentMethod === "transfer") {
+        setPendingPaymentOrder({ orderId: res.orderId, totalAmount, orderData });
+        setIsProcessing(false);
+        return;
+      }
+
       // Update shift summary
       setShiftSummary(prev => {
         let { cash, transfer, card, debt } = prev;
@@ -173,17 +235,6 @@ export const usePosState = () => {
         const items = cart.reduce((s, i) => s + i.cartQuantity, 0);
         return { cash, transfer, card, debt, totalItems: prev.totalItems + items, orderCount: prev.orderCount + 1 };
       });
-
-      const orderData = {
-        orderNum: generatedOrderCode,
-        cart: [...cart],
-        subtotal,
-        discountAmount,
-        totalAmount,
-        amountPaid,
-        customer: selectedCustomer,
-        date: new Date().toLocaleString("vi-VN", { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
-      };
 
       setCompletedOrder(orderData);
 
@@ -209,6 +260,38 @@ export const usePosState = () => {
       setIsProcessing(false);
     }
   }, [cart, totalAmount, amountPaidStr, paymentMethod, note, selectedCustomer, fetchProducts, orderNum, tabCounter, activeTabId, tabs.length]);
+
+  const handlePaymentSuccess = useCallback(() => {
+    if (!pendingPaymentOrder) return;
+    
+    const { totalAmount, orderData } = pendingPaymentOrder;
+    
+    setShiftSummary(prev => {
+      let { cash, transfer, card, debt } = prev;
+      transfer += totalAmount; // Full amount via transfer
+      const items = orderData.cart.reduce((s: number, i: any) => s + i.cartQuantity, 0);
+      return { cash, transfer, card, debt, totalItems: prev.totalItems + items, orderCount: prev.orderCount + 1 };
+    });
+
+    setCompletedOrder(orderData);
+    setPendingPaymentOrder(null);
+
+    setTabs(prev => {
+      if (prev.length > 1) {
+        const nextTabs = prev.filter(t => t.id !== activeTabId);
+        setActiveTabId(nextTabs[nextTabs.length - 1].id);
+        return nextTabs;
+      } else {
+        return [{ id: String(tabCounter), cart: [], discountValue: "", discountType: "pct", note: "", selectedCustomer: null }];
+      }
+    });
+    if (tabs.length <= 1) setTabCounter(c => c + 1);
+
+    setAmountPaidStr("");
+    setOrderNum((n) => n + 1);
+    setShowCheckoutModal(false);
+    fetchProducts();
+  }, [pendingPaymentOrder, tabCounter, activeTabId, tabs.length, fetchProducts]);
 
   const handleAddQuickCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -348,14 +431,14 @@ export const usePosState = () => {
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
     currentTime, paymentMethod, setPaymentMethod, orderNum, setOrderNum,
     showCheckoutModal, setShowCheckoutModal, amountPaidStr, setAmountPaidStr,
-    completedOrder, setCompletedOrder,
+    completedOrder, setCompletedOrder, pendingPaymentOrder, setPendingPaymentOrder,
     showStartShiftModal, setShowStartShiftModal, currentShift, setCurrentShift,
     showEndShiftModal, setShowEndShiftModal, showOrderHistoryModal, setShowOrderHistoryModal, shiftSummary, setShiftSummary,
     customers, setCustomers, showCustModal, setShowCustModal, custSearchQuery, setCustSearchQuery,
     newCustName, setNewCustName, newCustPhone, setNewCustPhone,
     categories, fetchProducts, fetchCustomers,
     subtotal, discVal, discountAmount, totalAmount,
-    handleOpenCheckout, handleCheckout, handleAddQuickCustomer,
+    handleOpenCheckout, handleCheckout, handlePaymentSuccess, handleAddQuickCustomer,
     addToCart, updateQty, updateUnit, removeItem, filteredProducts, totalPages, currentProducts
   };
 };

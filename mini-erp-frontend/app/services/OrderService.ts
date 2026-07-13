@@ -44,6 +44,16 @@ const OrderService = {
     return response.data;
   },
 
+  getOrderById: async (id: number): Promise<OrderDTO> => {
+    const response = await httpAxios.get(`/Orders/${id}`);
+    return response.data;
+  },
+
+  manualConfirmOrder: async (id: number): Promise<any> => {
+    const response = await httpAxios.put(`/Orders/${id}/complete`);
+    return response.data;
+  },
+
   // Tạo hóa đơn mới (Lưu ý C# sẽ tự động trừ kho)
   create: async (data: OrderCreateDTO): Promise<OrderDTO> => {
     const response = await httpAxios.post("/Orders", data);

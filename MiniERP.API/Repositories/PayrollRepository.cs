@@ -47,27 +47,56 @@ namespace MiniERP.API.Repositories
                 .Where(ws => ws.Status == "Closed" && ws.StartTime.Month == month && ws.StartTime.Year == year)
                 .ToListAsync();
 
+            var schedules = await _context.EmployeeSchedules
+                .Where(s => s.Date.Month == month && s.Date.Year == year)
+                .ToListAsync();
+
             var result = new List<TimesheetSummaryDTO>();
             foreach (var emp in employees)
             {
                 var manualHours = manualTimesheets.Where(t => t.EmployeeId == emp.Id).Sum(t => t.TotalHours);
                 
                 double posHours = 0;
+                double scheduledHours = 0;
+
+                var empSchedules = schedules.Where(s => s.EmployeeId == emp.Id).ToList();
+                foreach(var sch in empSchedules)
+                {
+                    scheduledHours += (sch.EndTime - sch.StartTime).TotalHours;
+                }
+
                 var empShifts = posShifts.Where(ws => ws.EmployeeId == emp.Id).ToList();
                 foreach (var shift in empShifts)
                 {
                     if (shift.EndTime.HasValue)
                     {
-                        posHours += (shift.EndTime.Value - shift.StartTime).TotalHours;
+                        var shiftDate = shift.StartTime.Date;
+                        var dailySchedule = empSchedules.FirstOrDefault(s => s.Date.Date == shiftDate);
+                        
+                        if(dailySchedule != null)
+                        {
+                            var scheduledStart = dailySchedule.Date.Add(dailySchedule.StartTime);
+                            var scheduledEnd = dailySchedule.Date.Add(dailySchedule.EndTime);
+                            
+                            var effectiveStart = shift.StartTime > scheduledStart ? shift.StartTime : scheduledStart;
+                            var effectiveEnd = shift.EndTime.Value < scheduledEnd ? shift.EndTime.Value : scheduledEnd;
+                            
+                            var paidTime = (effectiveEnd - effectiveStart).TotalHours;
+                            if(paidTime > 0)
+                            {
+                                posHours += paidTime;
+                            }
+                        }
                     }
                 }
 
-                if (manualHours > 0 || posHours > 0)
+                if (manualHours > 0 || posHours > 0 || scheduledHours > 0)
                 {
                     result.Add(new TimesheetSummaryDTO
                     {
                         EmployeeId = emp.Id,
                         EmployeeName = emp.FullName,
+                        ScheduledHours = Math.Round(scheduledHours, 2),
                         ManualHours = Math.Round(manualHours, 2),
                         PosHours = Math.Round(posHours, 2)
                     });

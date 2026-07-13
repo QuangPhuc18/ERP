@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import OrderService from "../../app/services/OrderService";
 import { IClose, ICheck, ISpin } from "../shared/Icons";
 import { PaymentMethod, CartItem, Customer } from "../../types/pos.types";
 
@@ -16,6 +17,8 @@ interface CheckoutModalProps {
   isProcessing: boolean;
   completedOrder: Record<string, any> | null;
   setCompletedOrder: (val: Record<string, any> | null) => void;
+  pendingPaymentOrder?: {orderId: number, totalAmount: number, orderData: any} | null;
+  setPendingPaymentOrder?: (val: any) => void;
   storeInfo: { name: string; address: string; phone: string; logo: string; };
 }
 
@@ -24,9 +27,45 @@ const fmt = (n: number) => n.toLocaleString("vi-VN") + "đ";
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   showCheckoutModal, setShowCheckoutModal, paymentMethod, setPaymentMethod,
   note, setNote, totalAmount, amountPaidStr, setAmountPaidStr,
-  handleCheckout, isProcessing, completedOrder, setCompletedOrder, storeInfo
+  handleCheckout, isProcessing, completedOrder, setCompletedOrder, storeInfo, pendingPaymentOrder, setPendingPaymentOrder
 }) => {
-  if (!showCheckoutModal && !completedOrder) return null;
+  useEffect(() => {
+    let interval: any;
+    if (pendingPaymentOrder) {
+      interval = setInterval(async () => {
+        try {
+          const order = await OrderService.getOrderById(pendingPaymentOrder.orderId);
+          if (order.status === "Completed") {
+            if (setCompletedOrder) setCompletedOrder(pendingPaymentOrder.orderData);
+            if (setPendingPaymentOrder) setPendingPaymentOrder(null);
+            setShowCheckoutModal(false);
+          }
+        } catch (e) {
+          console.error("Lỗi khi kiểm tra thanh toán", e);
+        }
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [pendingPaymentOrder, setCompletedOrder, setPendingPaymentOrder, setShowCheckoutModal]);
+
+  const [isManualConfirming, setIsManualConfirming] = useState(false);
+  const handleManualConfirm = async () => {
+    if (!pendingPaymentOrder) return;
+    setIsManualConfirming(true);
+    try {
+      await OrderService.manualConfirmOrder(pendingPaymentOrder.orderId);
+      if (setCompletedOrder) setCompletedOrder(pendingPaymentOrder.orderData);
+      if (setPendingPaymentOrder) setPendingPaymentOrder(null);
+      setShowCheckoutModal(false);
+    } catch (e) {
+      console.error(e);
+      alert("Xác nhận thủ công thất bại!");
+    } finally {
+      setIsManualConfirming(false);
+    }
+  };
+
+  if (!showCheckoutModal && !completedOrder && !pendingPaymentOrder) return null;
 
   return (
     <>
@@ -57,6 +96,37 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
               <button onClick={handleCheckout} disabled={isProcessing} className="w-full h-16 mt-8 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-100 disabled:text-gray-400 text-white rounded-[20px] text-[16px] font-black flex items-center justify-center gap-2 transition-all duration-300 shadow-xl shadow-orange-500/20 active:scale-[0.98] tracking-wide">{isProcessing ? <><ISpin /> ĐANG XỬ LÝ...</> : <><ICheck /> XÁC NHẬN THANH TOÁN</>}</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {pendingPaymentOrder && (
+        <div className="fixed inset-0 bg-black/60 z-[65] flex items-center justify-center p-4 backdrop-blur-md animate-fade-in no-print">
+          <div className="bg-white rounded-[32px] w-full max-w-md p-8 flex flex-col shadow-2xl relative items-center text-center">
+            <button onClick={() => { if(setPendingPaymentOrder) setPendingPaymentOrder(null); setShowCheckoutModal(false); }} className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-900 rounded-full transition-colors"><IClose /></button>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">Quét mã QR để thanh toán</h2>
+            <p className="text-gray-500 mb-6 font-medium text-sm">Đơn hàng #{pendingPaymentOrder.orderId} - Số tiền: <span className="font-bold text-orange-600">{fmt(pendingPaymentOrder.totalAmount)}</span></p>
+            
+            <div className="p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 mb-6">
+              {/* Thay YOUR_BIN và YOUR_ACCOUNT bằng mã ngân hàng và STK thực tế */}
+              <img 
+                src={`https://img.vietqr.io/image/970436-0909123456-compact2.png?amount=${pendingPaymentOrder.totalAmount}&addInfo=ERP%20DH${pendingPaymentOrder.orderId}&accountName=CUAHANG`} 
+                alt="QR Code Thanh Toán" 
+                className="w-64 h-64 object-contain rounded-xl"
+              />
+            </div>
+
+            <div className="w-full flex items-center gap-2 text-sm text-gray-500 justify-center mb-6 font-medium bg-orange-50 text-orange-700 py-3 rounded-xl border border-orange-100">
+              <ISpin /> Đang chờ khách thanh toán...
+            </div>
+
+            <button 
+              onClick={handleManualConfirm} 
+              disabled={isManualConfirming}
+              className="w-full h-14 bg-gray-900 hover:bg-black disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg"
+            >
+              {isManualConfirming ? "Đang xử lý..." : "Xác nhận đã nhận tiền (Thủ công)"}
+            </button>
           </div>
         </div>
       )}

@@ -69,6 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       items: [
         { name: "Nhân sự", path: "/dashboard/employees", icon: "badge" },
         { name: "Bộ phận", path: "/dashboard/departments", icon: "domain" },
+        { name: "Xếp lịch làm việc", path: "/dashboard/schedules", icon: "calendar_month" },
         { name: "Công & Lương", path: "/dashboard/timesheets", icon: "payments" }, 
         { name: "Quản lý Dự án", path: "/dashboard/projects", icon: "work" },
       ]

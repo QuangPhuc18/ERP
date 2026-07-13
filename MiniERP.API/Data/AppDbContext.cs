@@ -1,9 +1,9 @@
-using Microsoft.EntityFrameworkCore; // <-- Bắt buộc phải có dòng này để gọi EF Core
+﻿using Microsoft.EntityFrameworkCore; // <-- Báº¯t buá»™c pháº£i cÃ³ dÃ²ng nÃ y Ä‘á»ƒ gá»i EF Core
 using MiniERP.API.Entities;
 
 namespace MiniERP.API.Data
 {
-    // <-- Chú ý đoạn ": DbContext" ở đây. Nó giúp class này kế thừa các tính năng của EF Core
+    // <-- ChÃº Ã½ Ä‘oáº¡n ": DbContext" á»Ÿ Ä‘Ã¢y. NÃ³ giÃºp class nÃ y káº¿ thá»«a cÃ¡c tÃ­nh nÄƒng cá»§a EF Core
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
@@ -11,23 +11,24 @@ namespace MiniERP.API.Data
         public DbSet<Department> Departments { get; set; }
         public DbSet<Employee> Employees { get; set; }
 
-        // THÊM 2 BẢNG MỚI VÀO ĐÂY:
+        // THÃŠM 2 Báº¢NG Má»šI VÃ€O ÄÃ‚Y:
         public DbSet<Project> Projects { get; set; }
         public DbSet<EmployeeProject> EmployeeProjects { get; set; }
         public DbSet<Timesheet> Timesheets { get; set; }
+        public DbSet<EmployeeSchedule> EmployeeSchedules { get; set; }
         public DbSet<SupplierPayment> SupplierPayments { get; set; }
         public DbSet<Salary> Salaries { get; set; }
         public DbSet<SalaryAdvance> SalaryAdvances { get; set; }
-        // CẤU HÌNH FLUENT API
+        // Cáº¤U HÃŒNH FLUENT API
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // 1. Cấu hình Khóa chính kép cho bảng trung gian
+            // 1. Cáº¥u hÃ¬nh KhÃ³a chÃ­nh kÃ©p cho báº£ng trung gian
             modelBuilder.Entity<EmployeeProject>()
                 .HasKey(ep => new { ep.EmployeeId, ep.ProjectId });
 
-            // 2. Cấu hình quan hệ N-N
+            // 2. Cáº¥u hÃ¬nh quan há»‡ N-N
             modelBuilder.Entity<EmployeeProject>()
                 .HasOne(ep => ep.Employee)
                 .WithMany(e => e.EmployeeProjects)
@@ -42,7 +43,7 @@ namespace MiniERP.API.Data
                 .WithOne(a => a.Employee)
                 .HasForeignKey<Account>(a => a.EmployeeId);
 
-            // 3. Khắc phục lỗi Cascade delete của SupplierPayment
+            // 3. Kháº¯c phá»¥c lá»—i Cascade delete cá»§a SupplierPayment
             modelBuilder.Entity<SupplierPayment>()
                 .HasOne(sp => sp.Supplier)
                 .WithMany()
@@ -51,24 +52,24 @@ namespace MiniERP.API.Data
 
             // 4. Seeding Data cho Units
             modelBuilder.Entity<Unit>().HasData(
-                new Unit { Id = 1, Name = "Cái", Description = "Đơn vị đếm chung" },
-                new Unit { Id = 2, Name = "Hộp", Description = "Hộp giấy/nhựa" },
-                new Unit { Id = 3, Name = "Lon", Description = "Lon nhôm/sắt" },
-                new Unit { Id = 4, Name = "Chai", Description = "Chai nhựa/thủy tinh" },
-                new Unit { Id = 5, Name = "Ly", Description = "Ly/Cốc nhựa" },
-                new Unit { Id = 6, Name = "Gói", Description = "Gói nilon/giấy" },
-                new Unit { Id = 7, Name = "Bịch", Description = "Bịch lớn" },
-                new Unit { Id = 8, Name = "Tuýp", Description = "Tuýp kem/sữa" },
-                new Unit { Id = 9, Name = "Lốc", Description = "Lốc 4-6 hộp/chai" },
-                new Unit { Id = 10, Name = "Vỉ", Description = "Vỉ trứng/thuốc" },
-                new Unit { Id = 11, Name = "Thùng", Description = "Thùng carton" },
-                new Unit { Id = 12, Name = "Két", Description = "Két nhựa đựng chai" },
-                new Unit { Id = 13, Name = "Dây", Description = "Dây nhiều gói nhỏ" },
+                new Unit { Id = 1, Name = "CÃ¡i", Description = "ÄÆ¡n vá»‹ Ä‘áº¿m chung" },
+                new Unit { Id = 2, Name = "Há»™p", Description = "Há»™p giáº¥y/nhá»±a" },
+                new Unit { Id = 3, Name = "Lon", Description = "Lon nhÃ´m/sáº¯t" },
+                new Unit { Id = 4, Name = "Chai", Description = "Chai nhá»±a/thá»§y tinh" },
+                new Unit { Id = 5, Name = "Ly", Description = "Ly/Cá»‘c nhá»±a" },
+                new Unit { Id = 6, Name = "GÃ³i", Description = "GÃ³i nilon/giáº¥y" },
+                new Unit { Id = 7, Name = "Bá»‹ch", Description = "Bá»‹ch lá»›n" },
+                new Unit { Id = 8, Name = "TuÃ½p", Description = "TuÃ½p kem/sá»¯a" },
+                new Unit { Id = 9, Name = "Lá»‘c", Description = "Lá»‘c 4-6 há»™p/chai" },
+                new Unit { Id = 10, Name = "Vá»‰", Description = "Vá»‰ trá»©ng/thuá»‘c" },
+                new Unit { Id = 11, Name = "ThÃ¹ng", Description = "ThÃ¹ng carton" },
+                new Unit { Id = 12, Name = "KÃ©t", Description = "KÃ©t nhá»±a Ä‘á»±ng chai" },
+                new Unit { Id = 13, Name = "DÃ¢y", Description = "DÃ¢y nhiá»u gÃ³i nhá»" },
                 new Unit { Id = 14, Name = "Kg", Description = "Kilogram" },
                 new Unit { Id = 15, Name = "Gram", Description = "Gram" }
             );
 
-            // Cấu hình ProductUoM để xóa Product thì xóa luôn ProductUoM (Cascade) nhưng Unit thì Restrict
+            // Cáº¥u hÃ¬nh ProductUoM Ä‘á»ƒ xÃ³a Product thÃ¬ xÃ³a luÃ´n ProductUoM (Cascade) nhÆ°ng Unit thÃ¬ Restrict
             modelBuilder.Entity<ProductUoM>()
                 .HasOne(p => p.Unit)
                 .WithMany()

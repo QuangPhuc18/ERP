@@ -10,6 +10,7 @@ import { EndShiftModal } from "../../../components/pos/EndShiftModal";
 import { CustomerModal } from "../../../components/pos/CustomerModal";
 import StartShiftModal from "../../../components/pos/StartShiftModal";
 import { OrderHistoryModal } from "../../../components/pos/OrderHistoryModal";
+import signalRService from "../../services/SignalRService";
 
 export default function POSPage() {
   const state = usePosState();
@@ -32,10 +33,37 @@ export default function POSPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [state.cart, state.totalAmount, state.showCheckoutModal]);
 
+  // Kết nối SignalR khi mở POS
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      signalRService.startConnection(token);
+    }
+
+    // Lắng nghe sự kiện thanh toán thành công
+    signalRService.on("PaymentReceived", (orderId: number, amount: number) => {
+      console.log("🟢 PaymentReceived", orderId, amount);
+      if (state.pendingPaymentOrder && state.pendingPaymentOrder.orderId === orderId) {
+        state.handlePaymentSuccess();
+      }
+    });
+
+    // Lắng nghe sự kiện tồn kho bị thay đổi (bởi người khác bán)
+    signalRService.on("InventoryUpdated", () => {
+      console.log("🟢 Tồn kho thay đổi -> Đang tải lại sản phẩm...");
+      state.fetchProducts();
+    });
+
+    return () => {
+      signalRService.off("PaymentReceived");
+      signalRService.off("InventoryUpdated");
+    };
+  }, [state.pendingPaymentOrder, state.handlePaymentSuccess, state.fetchProducts]);
+
   return (
     <div className="flex h-screen bg-[#F5F6FA] overflow-hidden relative">
       
-      {/* ════════ LEFT: PRODUCT AREA ════════ */}
+      {/* â•â•â•â•â•â•â•â• LEFT: PRODUCT AREA â•â•â•â•â•â•â•â• */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <Topbar 
           currentTime={state.currentTime}
@@ -58,7 +86,7 @@ export default function POSPage() {
         />
       </div>
 
-      {/* ════════ RIGHT: CART AREA ════════ */}
+      {/* â•â•â•â•â•â•â•â• RIGHT: CART AREA â•â•â•â•â•â•â•â• */}
       <CartSidebar 
         isMobileCartOpen={state.isMobileCartOpen}
         setIsMobileCartOpen={state.setIsMobileCartOpen}
@@ -82,7 +110,7 @@ export default function POSPage() {
         isProcessing={state.isProcessing}
       />
 
-      {/* ════════ MODALS ════════ */}
+      {/* â•â•â•â•â•â•â•â• MODALS â•â•â•â•â•â•â•â• */}
       <CheckoutModal 
         showCheckoutModal={state.showCheckoutModal}
         setShowCheckoutModal={state.setShowCheckoutModal}
@@ -97,6 +125,8 @@ export default function POSPage() {
         isProcessing={state.isProcessing}
         completedOrder={state.completedOrder}
         setCompletedOrder={state.setCompletedOrder}
+        pendingPaymentOrder={state.pendingPaymentOrder}
+        setPendingPaymentOrder={state.setPendingPaymentOrder}
         storeInfo={storeInfo}
       />
 
@@ -126,7 +156,7 @@ export default function POSPage() {
 
       {state.showStartShiftModal && (
         <StartShiftModal 
-          employeeName={typeof window !== "undefined" ? localStorage.getItem("user_name") || "Nhân viên" : "Nhân viên"}
+          employeeName={typeof window !== "undefined" ? localStorage.getItem("user_name") || "NhÃ¢n viÃªn" : "NhÃ¢n viÃªn"}
           onShiftStarted={(shift) => {
             state.setCurrentShift(shift);
             state.setShowStartShiftModal(false);

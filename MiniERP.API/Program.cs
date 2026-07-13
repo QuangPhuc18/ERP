@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MiniERP.API.Data;
+using MiniERP.API.Hubs;
 using MiniERP.API.Repositories;
 using System.Security.Claims;
 using System.Text;
@@ -48,18 +49,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Đăng ký Repository
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 // Đăng ký Repository
-// THÊM DÒNG NÀY:
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddSignalR();
+
 // Mở khóa CORS để Frontend có thể gọi API
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
         policy =>
         {
-            policy.AllowAnyOrigin()    // Cho phép bất kỳ tên miền nào gọi tới
+            policy.SetIsOriginAllowed(_ => true) // SignalR yêu cầu cấu hình này thay vì AllowAnyOrigin()
                   .AllowAnyHeader()    // Cho phép mọi loại Header
-                  .AllowAnyMethod();   // Cho phép mọi phương thức (GET, POST, PUT, DELETE)
+                  .AllowAnyMethod()    // Cho phép mọi phương thức (GET, POST, PUT, DELETE)
+                  .AllowCredentials(); // SignalR yêu cầu AllowCredentials
         });
 });
 // Đọc chìa khóa từ appsettings.json
@@ -84,10 +88,8 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(key),
         RoleClaimType = ClaimTypes.Role
-    
-};
+    };
 });
-builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
 builder.Services.AddAuthorization();
 var app = builder.Build();
 
@@ -106,5 +108,6 @@ if (app.Environment.IsDevelopment())
 
 // 2. KÍCH HOẠT BẢN ĐỒ ĐỊNH TUYẾN CHO CÁC CONTROLLER
 app.MapControllers();
+app.MapHub<AppHub>("/appHub");
 
 app.Run();

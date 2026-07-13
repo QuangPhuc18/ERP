@@ -10,6 +10,7 @@ import EmployeeService, { EmployeeDTO } from "../../services/EmployeeService";
 interface TimesheetSummary {
   employeeId: number;
   employeeName: string;
+  scheduledHours: number;
   posHours: number;
   manualHours: number;
   totalHours: number;
@@ -75,6 +76,7 @@ export default function TimesheetsPage() {
       const normalizedData: TimesheetSummary[] = data.map((item: any) => ({
         employeeId: item.employeeId ?? item.EmployeeId,
         employeeName: item.employeeName ?? item.EmployeeName,
+        scheduledHours: item.scheduledHours ?? item.ScheduledHours ?? 0,
         posHours: item.posHours ?? item.PosHours ?? 0,
         manualHours: item.manualHours ?? item.ManualHours ?? 0,
         totalHours: item.totalHours ?? item.TotalHours ?? 0,
@@ -227,19 +229,26 @@ export default function TimesheetsPage() {
               <tr className="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm">
                 <th className="p-4 font-semibold">Mã ID</th>
                 <th className="p-4 font-semibold">Họ và Tên</th>
-                <th className="p-4 font-semibold text-center">Giờ từ POS</th>
+                <th className="p-4 font-semibold text-center">Số giờ theo lịch</th>
+                <th className="p-4 font-semibold text-center">Giờ tính lương (POS)</th>
                 <th className="p-4 font-semibold text-center">Giờ cộng thêm</th>
                 <th className="p-4 font-semibold text-center">Tổng giờ thực tế</th>
                 <th className="p-4 font-semibold text-center">Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {summaryList.map((record, index) => (
+              {summaryList.map((record, index) => {
+                const isUnderperforming = record.posHours < record.scheduledHours;
+                return (
                 <tr key={record.employeeId || index} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
                   <td className="p-4 text-sm font-medium text-gray-500">#{record.employeeId}</td>
                   <td className="p-4 font-bold text-gray-800">{record.employeeName}</td>
-                  <td className="p-4 text-center font-medium text-emerald-600">
+                  <td className="p-4 text-center font-medium text-gray-600">
+                    {record.scheduledHours > 0 ? `${record.scheduledHours}h` : '-'}
+                  </td>
+                  <td className={`p-4 text-center font-bold ${isUnderperforming ? 'text-red-500' : 'text-emerald-600'}`}>
                     {record.posHours > 0 ? `${record.posHours}h` : '-'}
+                    {isUnderperforming && <div className="text-[10px] text-red-500 font-normal">(-{record.scheduledHours - record.posHours}h)</div>}
                   </td>
                   <td className="p-4 text-center font-medium text-orange-500">
                     {record.manualHours > 0 ? `${record.manualHours}h` : '-'}
@@ -257,7 +266,7 @@ export default function TimesheetsPage() {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         )}
