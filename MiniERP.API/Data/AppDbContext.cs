@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore; // <-- Báº¯t buá»™c pháº£i cÃ³ dÃ²ng nÃ y Ä‘á»ƒ gá»i EF Core
+using Microsoft.EntityFrameworkCore; // <-- Báº¯t buá»™c pháº£i cÃ³ dÃ²ng nÃ y Ä‘á»ƒ gá»i EF Core
 using MiniERP.API.Entities;
 
 namespace MiniERP.API.Data
@@ -8,6 +8,7 @@ namespace MiniERP.API.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+        public DbSet<StoreSetting> StoreSettings { get; set; }
         public DbSet<Department> Departments { get; set; }
         public DbSet<Employee> Employees { get; set; }
 
@@ -23,6 +24,21 @@ namespace MiniERP.API.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Khởi tạo dữ liệu cấu hình cửa hàng mặc định
+            modelBuilder.Entity<StoreSetting>().HasData(
+                new StoreSetting 
+                { 
+                    Id = 1, 
+                    StoreName = "Tạp Hóa NexERP", 
+                    Slogan = "Authentic, transparent, and sophisticated.", 
+                    Address = "123 Đường Bán Lẻ, Quận Trung Tâm, TP.HCM", 
+                    Phone = "0909 123 456", 
+                    Email = "contact@nexerp.com", 
+                    FacebookUrl = "https://facebook.com/nexerp", 
+                    LogoUrl = "storefront" 
+                }
+            );
 
             // 1. Cáº¥u hÃ¬nh KhÃ³a chÃ­nh kÃ©p cho báº£ng trung gian
             modelBuilder.Entity<EmployeeProject>()

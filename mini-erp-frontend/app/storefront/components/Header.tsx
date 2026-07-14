@@ -1,13 +1,18 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCart } from "../CartContext";
 import { useCustomerAuth } from "../CustomerAuthContext";
+import { useStoreSettings } from "../StoreSettingsContext";
 
 const Header = () => {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
   const { cartCount } = useCart();
   const { isLoggedIn, customerName, logout } = useCustomerAuth();
+  const { settings } = useStoreSettings();
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-sf-surface/80 backdrop-blur-md dark:bg-sf-inverse-surface/80">
@@ -15,25 +20,39 @@ const Header = () => {
         {/* Brand Logo */}
         <Link className="flex items-center gap-2" href="/storefront">
           <img 
-            alt="Grocer Brand Logo" 
+            alt="Brand Logo" 
             className="h-10 w-10 object-cover rounded-sm" 
-            src="https://lh3.googleusercontent.com/aida/AP1WRLvS7_c1BgyyRakHSGtUKsvTnpCc7cag5hF0q1npCRpis2d9sG4b2vaBuwmzGdJnyDC1vqBdgfQtrVWJz-cnp8UES_YPbzUbAkzx6kGPPjA1Ta4cJQWMEMVub9FZbRPhKxsYYJ736drK6ttMsb7oVD-DwnaA6AQ5Ss-Owx86qvXduBR3zLm9RIZh6zDThGVVwzqhNlf4lIp9FI5zrFSVacK96m4WhbZg3uaHvbgbPnfMX5b-f_A4V396fg" 
+            src={settings?.logoUrl?.startsWith("http") ? settings.logoUrl : "https://lh3.googleusercontent.com/aida/AP1WRLvS7_c1BgyyRakHSGtUKsvTnpCc7cag5hF0q1npCRpis2d9sG4b2vaBuwmzGdJnyDC1vqBdgfQtrVWJz-cnp8UES_YPbzUbAkzx6kGPPjA1Ta4cJQWMEMVub9FZbRPhKxsYYJ736drK6ttMsb7oVD-DwnaA6AQ5Ss-Owx86qvXduBR3zLm9RIZh6zDThGVVwzqhNlf4lIp9FI5zrFSVacK96m4WhbZg3uaHvbgbPnfMX5b-f_A4V396fg"}
           />
-          <span className="font-sf-display text-4xl font-extrabold text-sf-primary dark:text-sf-primary-fixed tracking-tight hidden md:block">
-            Grocer
+          <span className="font-sf-display text-3xl font-extrabold text-sf-primary dark:text-sf-primary-fixed tracking-tight hidden md:block">
+            {settings?.storeName || "Grocer"}
           </span>
         </Link>
         
-        {/* Search Bar */}
-        <div className="flex-1 max-w-xl mx-4">
-          <div className="relative">
+        {/* Navigation & Search */}
+        <div className="flex-1 mx-8 hidden md:flex items-center gap-8 font-sf-body font-semibold text-base text-sf-on-surface-variant">
+          <Link href="/storefront" className="hover:text-sf-primary transition-colors">Trang chủ</Link>
+          <Link href="/storefront/shop" className="hover:text-sf-primary transition-colors">Cửa hàng</Link>
+          <Link href="/storefront/journal" className="hover:text-sf-primary transition-colors">Bài viết</Link>
+
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (searchQuery.trim()) {
+                router.push(`/storefront/shop?search=${encodeURIComponent(searchQuery)}`);
+              }
+            }}
+            className="flex-1 max-w-sm ml-auto relative"
+          >
             <span className="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-sf-outline">search</span>
             <input 
-              className="w-full bg-sf-surface-container-low border-b border-sf-outline focus:border-sf-primary focus:ring-0 focus:outline-none pl-10 pr-4 py-2 text-sf-on-surface bg-transparent transition-colors" 
-              placeholder="Search for fresh ingredients..." 
+              className="w-full bg-sf-surface-container-low border-b border-sf-outline focus:border-sf-primary focus:ring-0 focus:outline-none pl-10 pr-4 py-1 text-sf-on-surface bg-transparent transition-colors text-sm font-normal" 
+              placeholder="Tìm kiếm sản phẩm..." 
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </div>
+          </form>
         </div>
         
         {/* Actions */}

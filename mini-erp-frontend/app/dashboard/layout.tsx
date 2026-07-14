@@ -95,12 +95,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: "Cấp tài khoản mới", path: "/auth/register", icon: "admin_panel_settings" },
       ]
     },
-     {
+    {
       title: "Quản Trị Người dùng",
       icon: "web",
       items: [
         { name: "Quản lý Banner", path: "/dashboard/banners", icon: "view_carousel" },
         { name: "Bài viết / Tạp chí", path: "/dashboard/posts", icon: "article" },
+        { name: "Cài đặt Cửa hàng", path: "/dashboard/settings", icon: "settings" },
       ]
     },
   ];

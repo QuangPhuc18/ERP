@@ -12,6 +12,7 @@ interface Product {
   price: number;
   imageUrl: string;
   categoryName: string;
+  categoryId?: number;
   quantity: number;
   productCode: string;
   description?: string;
@@ -21,6 +22,7 @@ export default function ProductDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
   const { addToCart } = useCart();
@@ -28,8 +30,25 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (id) {
+      // Tải sản phẩm hiện tại
       httpAxios.get(`/Storefront/products/${id}`)
-        .then((res) => setProduct(res.data))
+        .then((res) => {
+          setProduct(res.data);
+          // Tải danh sách tất cả sản phẩm để lọc sản phẩm liên quan
+          return httpAxios.get(`/Storefront/products`).then((allRes) => {
+            const allProducts: Product[] = allRes.data;
+            // Lọc cùng danh mục, trừ sản phẩm hiện tại, lấy tối đa 4 sản phẩm
+            const related = allProducts
+              .filter((p) => {
+                const isSameCategory = p.categoryId 
+                  ? p.categoryId === res.data.categoryId 
+                  : p.categoryName === res.data.categoryName;
+                return isSameCategory && p.id !== res.data.id;
+              })
+              .slice(0, 4);
+            setRelatedProducts(related);
+          });
+        })
         .catch((err) => console.error(err))
         .finally(() => setLoading(false));
     }
@@ -273,6 +292,77 @@ export default function ProductDetailPage() {
           )}
         </div>
       </section>
+
+      {/* Sản phẩm liên quan */}
+      {relatedProducts.length > 0 && (
+        <section className="max-w-7xl mx-auto px-5 md:px-16 py-12 mb-16 border-t border-sf-surface-variant">
+          <h2 className="font-sf-display text-2xl font-bold mb-8 text-sf-on-surface">Sản phẩm liên quan</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {relatedProducts.map((p) => (
+              <div key={p.id} className="group flex flex-col bg-sf-surface dark:bg-sf-surface-container rounded-2xl border border-sf-outline-variant overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <Link href={`/storefront/product-detail/${p.id}`} className="aspect-[4/3] bg-sf-surface-container-lowest overflow-hidden relative block">
+                  {p.imageUrl ? (
+                    <img 
+                      src={p.imageUrl} 
+                      alt={p.productName}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <span className="material-symbols-outlined text-4xl text-gray-300">image</span>
+                    </div>
+                  )}
+                  {p.quantity <= 0 && (
+                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
+                      <span className="bg-gray-900 text-white font-sf-body text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg">Hết hàng</span>
+                    </div>
+                  )}
+                </Link>
+                
+                <div className="p-4 flex flex-col flex-1">
+                  <span className="text-xs font-semibold text-sf-primary uppercase tracking-wider mb-1">
+                    {p.categoryName || "Khác"}
+                  </span>
+                  <Link href={`/storefront/product-detail/${p.id}`} className="flex-1">
+                    <h3 className="font-sf-display font-bold text-sf-on-surface text-base leading-tight mb-2 hover:text-sf-primary transition-colors line-clamp-2">
+                      {p.productName}
+                    </h3>
+                  </Link>
+                  
+                  <div className="flex items-end justify-between mt-auto pt-4 border-t border-sf-outline-variant">
+                    <div className="flex flex-col">
+                      <span className="font-sans font-semibold text-gray-900 text-base">
+                        {p.price.toLocaleString('vi-VN')}đ
+                      </span>
+                    </div>
+                    <button 
+                      disabled={p.quantity <= 0}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        addToCart({
+                          productId: p.id,
+                          productName: p.productName,
+                          price: p.price,
+                          imageUrl: p.imageUrl || "",
+                          categoryName: p.categoryName
+                        });
+                      }}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${
+                        p.quantity <= 0 
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                          : 'bg-sf-primary/10 text-sf-primary hover:bg-sf-primary hover:text-sf-on-primary'
+                      }`}
+                      title={p.quantity <= 0 ? "Hết hàng" : "Thêm vào giỏ"}
+                    >
+                      <span className="material-symbols-outlined text-[20px]">shopping_cart</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

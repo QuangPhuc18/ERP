@@ -55,7 +55,7 @@ export default function CategoryGrid() {
             } else if (index === 3 || (!cat.imageUrl && index % 2 !== 0)) {
               // Style dạng card không ảnh hoặc ô đặc biệt
               return (
-                <Link key={cat.id} href={`#category-${cat.id}`} className={`${colSpanClass} relative group overflow-hidden sf-card-level-1 rounded-lg bg-sf-surface-container-low flex flex-col items-center justify-center p-6 text-center hover:bg-sf-surface-container-high transition-colors`}>
+                <Link key={cat.id} href={`/storefront/shop?category=${cat.id}`} className={`${colSpanClass} relative group overflow-hidden sf-card-level-1 rounded-lg bg-sf-surface-container-low flex flex-col items-center justify-center p-6 text-center hover:bg-sf-surface-container-high transition-colors`}>
                   <span className="material-symbols-outlined text-4xl text-sf-primary mb-4">category</span>
                   <h3 className="font-sf-display text-2xl font-bold text-sf-on-surface">{cat.name}</h3>
                   {cat.description && <p className="text-sm mt-2 text-sf-on-surface-variant font-sf-body">{cat.description}</p>}
@@ -64,7 +64,7 @@ export default function CategoryGrid() {
             }
 
             return (
-              <Link key={cat.id} href={`#category-${cat.id}`} className={`${colSpanClass} relative group overflow-hidden sf-card-level-1 rounded-lg`}>
+              <Link key={cat.id} href={`/storefront/shop?category=${cat.id}`} className={`${colSpanClass} relative group overflow-hidden sf-card-level-1 rounded-lg`}>
                 {cat.imageUrl ? (
                   <div 
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 

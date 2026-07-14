@@ -4,6 +4,7 @@ import React from "react";
 import { Syne, Work_Sans } from "next/font/google";
 import { CartProvider } from "./CartContext";
 import { CustomerAuthProvider } from "./CustomerAuthContext";
+import { StoreSettingsProvider } from "./StoreSettingsContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { usePathname } from "next/navigation";
@@ -22,9 +23,10 @@ export default function StorefrontLayout({
   const isAuth = pathname?.includes("/storefront/auth");
 
   return (
-    <CustomerAuthProvider>
-      <CartProvider>
-        <div className={`min-h-screen flex flex-col bg-sf-background text-sf-on-background font-sf-body overflow-x-hidden antialiased ${syne.variable} ${workSans.variable}`}>
+    <StoreSettingsProvider>
+      <CustomerAuthProvider>
+        <CartProvider>
+          <div className={`min-h-screen flex flex-col bg-sf-background text-sf-on-background font-sf-body overflow-x-hidden antialiased ${syne.variable} ${workSans.variable}`}>
           {!isCheckout && !isAuth && <Header />}
           
           {/* Phần Main Content ở giữa */}
@@ -34,7 +36,8 @@ export default function StorefrontLayout({
           
           {!isCheckout && !isAuth && <Footer />}
         </div>
-      </CartProvider>
-    </CustomerAuthProvider>
+        </CartProvider>
+      </CustomerAuthProvider>
+    </StoreSettingsProvider>
   );
 }

@@ -100,6 +100,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
  
     app.UseCors("AllowAll");
+    
+    // Cấu hình phục vụ file tĩnh (ảnh upload)
+    app.UseStaticFiles();
+    
     app.UseAuthentication();
     app.UseAuthorization();
 }

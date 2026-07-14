@@ -43,7 +43,7 @@ export default function HeroBanner() {
     title: "Curated freshness, delivered daily.",
     subtitle: "Experience the season best produce, hand-selected for culinary enthusiasts. Authenticity in every bite.",
     buttonText: "Shop the Season",
-    buttonLink: "#essentials",
+    buttonLink: "/storefront/shop",
     imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuANM2a5DVdVMMGYD9AtGBRcW9tlYHIL3EsqFMwMsv0egU9eP37voXuYJT5JXjuygApgmUVyx0cT7fuLc0WKnWw9u6Elkb4c7Lv8s15CRbWedlzSK2cjDwAMJl3B6RZdPH37zI1U5XPGc770Z4g-650in60zuhkBH1kTGxQt3MUaoti87mFJOypbADAvxMDbncjYYk5lbj-JMWwi6RHjD8Lmv6PkGyPRvntubrb52ccQWfKGUsus0J8A",
   };
 
@@ -59,10 +59,10 @@ export default function HeroBanner() {
             </p>
         )}
         
-        {displayBanner.buttonText && displayBanner.buttonLink && (
+        {displayBanner.buttonText && (
             <div className="mt-4">
                 <Link 
-                    href={displayBanner.buttonLink}
+                    href={(!displayBanner.buttonLink || displayBanner.buttonLink.includes("Mua")) ? "/storefront/shop" : displayBanner.buttonLink}
                     className="inline-flex items-center justify-center px-8 py-4 bg-sf-primary text-sf-on-primary hover:bg-sf-on-primary-fixed-variant transition-colors rounded font-sf-body text-xs font-semibold uppercase tracking-widest"
                 >
                     {displayBanner.buttonText}

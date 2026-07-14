@@ -25,18 +25,29 @@ interface Category {
 
 export default function StorefrontHomePage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
 
   useEffect(() => {
+    // Tách riêng fetch products để không bị chờ fetch posts
     httpAxios.get("/Storefront/products")
       .then((res) => {
         setProducts(res.data);
       })
       .catch((err) => {
-        console.error("Lỗi lấy dữ liệu:", err);
+        console.error("Lỗi lấy dữ liệu sản phẩm:", err);
       })
       .finally(() => setLoading(false));
+
+    // Fetch posts chạy ngầm
+    httpAxios.get("/Storefront/posts")
+      .then((res) => {
+        setPosts(res.data.slice(0, 2));
+      })
+      .catch((err) => {
+        console.error("Lỗi lấy bài viết:", err);
+      });
   }, []);
 
   return (
@@ -55,7 +66,7 @@ export default function StorefrontHomePage() {
             <h2 className="font-sf-display text-4xl font-extrabold text-sf-on-secondary-fixed mb-4">20% off all Organic Citrus</h2>
             <p className="font-sf-body text-lg text-sf-on-secondary-fixed-variant mb-6">Brighten your morning with our hand-picked selection of oranges, grapefruits, and lemons.</p>
             <Link 
-              href="#essentials" 
+              href="/storefront/shop" 
               className="inline-flex items-center justify-center px-6 py-3 bg-sf-secondary text-sf-on-secondary hover:bg-sf-secondary-container hover:text-sf-on-secondary-container transition-colors rounded font-sf-body text-xs font-semibold uppercase tracking-widest"
             >
               Claim Offer
@@ -115,37 +126,33 @@ export default function StorefrontHomePage() {
                   <span className="font-sf-body text-xs font-semibold text-sf-on-surface-variant mb-1 uppercase tracking-widest line-clamp-1">
                     {product.categoryName}
                   </span>
-                  <Link href={`/storefront/product-detail/${product.id}`}>
-                    <h3 className="font-sf-body text-base font-semibold text-sf-on-surface mb-2 line-clamp-2 hover:text-sf-primary transition-colors">
+                  <div className="flex flex-col mb-4">
+                    <h3 className="font-sf-display font-bold text-sf-on-surface text-lg leading-tight mb-2 truncate">
                       {product.productName}
                     </h3>
-                  </Link>
-                  <div className="mt-auto flex items-center justify-between">
-                    <span className="font-sf-body text-lg text-sf-on-surface font-bold">
-                      {product.price.toLocaleString("vi-VN")} ₫
-                    </span>
-                    <button
-                      disabled={product.quantity <= 0}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (product.quantity <= 0) return;
-                        addToCart({
-                          productId: product.id,
-                          productName: product.productName,
-                          price: product.price,
-                          imageUrl: product.imageUrl || ""
-                        });
-                      }}
-                      className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors ${
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-sans font-semibold text-gray-900 text-base">
+                        {product.price.toLocaleString('vi-VN')} đ
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    disabled={product.quantity <= 0}
+                    onClick={() => addToCart({
+                      productId: product.id,
+                      productName: product.productName,
+                      price: product.price,
+                      imageUrl: product.imageUrl || "",
+                      categoryName: product.categoryName
+                    })}
+                    className={`mt-auto w-full py-2 flex items-center justify-center gap-2 rounded bg-sf-surface-container hover:bg-sf-primary hover:text-sf-on-primary text-sf-primary transition-colors font-sf-body font-semibold text-sm group-hover:shadow-sm ${
                         product.quantity <= 0 
                           ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50' 
                           : 'border-sf-primary text-sf-primary hover:bg-sf-primary hover:text-sf-on-primary'
                       }`}
-                      title={product.quantity <= 0 ? "Hết hàng" : "Thêm vào giỏ"}
-                    >
-                      <span className="material-symbols-outlined text-sm">add</span>
-                    </button>
-                  </div>
+                  >
+                    Thêm vào giỏ
+                  </button>
                 </div>
               </div>
             ))}
@@ -157,40 +164,36 @@ export default function StorefrontHomePage() {
       <section className="max-w-7xl mx-auto px-5 md:px-16 py-12 border-t border-sf-surface-variant">
         <h2 className="font-sf-display text-2xl font-bold mb-12 text-center">The Journal</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-          {/* Article 1 */}
-          <article className="group cursor-pointer">
-            <div className="w-full aspect-[4/3] mb-6 overflow-hidden rounded-lg bg-sf-surface-container-low">
-              <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTfr_ApjbRCbuBNf9coFpKqhTqn0S1bninvhlXaOjL2VE8YlSCgNykrVSG4qeGHOIcg1oVZCBr1U_qnv4HXXBBqkdYt17rooswDvgN2wmLSFYcIqhLQ-_2KS1jVeO5ZGWxP4j6LdQV0--RbiDchjcKTryeBJrnW_xvXfXn7ORmogUQu0ukDalP_ewjLmHV4mEIAzwJmepD2MqaiduOT0MMKBQlTssX4rNL3Tgm9IXwDDPf-F5cqdww" 
-                alt="Farmer hands" 
-                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
-              />
-            </div>
-            <span className="font-sf-body text-xs font-semibold text-sf-primary uppercase tracking-widest mb-2 block">Growers</span>
-            <h3 className="font-sf-display text-2xl font-bold text-sf-on-surface mb-3 group-hover:text-sf-primary transition-colors">
-              Rooted in Tradition: Meet the Smiths
-            </h3>
-            <p className="font-sf-body text-base text-sf-on-surface-variant">
-              A deep dive into the sustainable practices of our oldest root vegetable supplier.
-            </p>
-          </article>
-          {/* Article 2 */}
-          <article className="group cursor-pointer">
-            <div className="w-full aspect-[4/3] mb-6 overflow-hidden rounded-lg bg-sf-surface-container-low">
-              <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuIZOBEK8PyaA9josViZ6GIKHClc5JGCjw8ViP04VMytCq1uHQ5dfiB3jq5I5_gVafzUPulIet2QvZKEq1ux2IIUP4To97Q83O793kFrB4eGFZU6IIF06mMspT6y9lnOaDAzetGa9Itgp2FYuCVnHtrtq_KH93IhB7GvZnMjlAb_xOPmFvssDmN6WA5xuYXL0yXZHHgPBdU9tkCh38fCo50Zal_LEDbh8FZ3mARtllQshc3O95zV5P" 
-                alt="Minimalist salad" 
-                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
-              />
-            </div>
-            <span className="font-sf-body text-xs font-semibold text-sf-primary uppercase tracking-widest mb-2 block">Recipes</span>
-            <h3 className="font-sf-display text-2xl font-bold text-sf-on-surface mb-3 group-hover:text-sf-primary transition-colors">
-              The Art of the Minimalist Salad
-            </h3>
-            <p className="font-sf-body text-base text-sf-on-surface-variant">
-              Letting high-quality, seasonal ingredients speak for themselves with three simple steps.
-            </p>
-          </article>
+          {posts.length > 0 ? (
+            posts.map(post => (
+              <Link key={post.id} href={`/storefront/journal/${post.id}`} className="group cursor-pointer block">
+                <div className="w-full aspect-[4/3] mb-6 overflow-hidden rounded-lg bg-sf-surface-container-low">
+                  {post.imageUrl ? (
+                    <img 
+                      src={post.imageUrl} 
+                      alt={post.title} 
+                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105" 
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <span className="material-symbols-outlined text-4xl text-gray-300">article</span>
+                    </div>
+                  )}
+                </div>
+                <span className="font-sf-body text-xs font-semibold text-sf-primary uppercase tracking-widest mb-2 block">
+                  {post.topic || "Blog"}
+                </span>
+                <h3 className="font-sf-display text-2xl font-bold text-sf-on-surface mb-3 group-hover:text-sf-primary transition-colors">
+                  {post.title}
+                </h3>
+                <p className="font-sf-body text-base text-sf-on-surface-variant">
+                  {new Date(post.publishDate).toLocaleDateString("vi-VN")}
+                </p>
+              </Link>
+            ))
+          ) : (
+            <p className="text-center col-span-1 md:col-span-2 text-gray-500">Chưa có bài viết nào.</p>
+          )}
         </div>
       </section>
     </>
