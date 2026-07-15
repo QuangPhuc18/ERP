@@ -26,7 +26,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-fade-in">
-      <div className="bg-white rounded-[32px] max-w-md w-full p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] flex flex-col max-h-[85vh]">
+      <div className="bg-white rounded-[32px] max-w-md w-full p-6 md:p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] flex flex-col max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-8">
           <h3 className="font-extrabold text-gray-900 text-2xl tracking-tight flex items-center gap-3">
             <span className="material-symbols-outlined text-orange-500 text-3xl">how_to_reg</span> Khách hàng
@@ -47,7 +47,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
           />
         </div>
         
-        <div className="flex-1 overflow-y-auto mb-6 border border-gray-100 rounded-[20px] max-h-56 divide-y divide-gray-50 bg-[#F5F6FA]">
+        <div className="flex-1 overflow-y-auto mb-6 border border-gray-100 rounded-[20px] min-h-[250px] divide-y divide-gray-50 bg-[#F5F6FA] shadow-inner">
           {customers.length === 0 ? (
             <p className="text-center text-gray-400 text-sm py-10 font-semibold tracking-wide">Chưa có dữ liệu</p>
           ) : (
@@ -56,6 +56,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
                 <div>
                   <p className="font-bold text-gray-900 text-[15px]">{c.fullName}</p>
                   <p className="text-[13px] text-gray-500 mt-1 font-medium"><span className="material-symbols-outlined text-[14px] align-text-bottom mr-1 text-gray-400">call</span>{c.phone}</p>
+                  <p className="text-[13px] text-orange-500 mt-1 font-bold"><span className="material-symbols-outlined text-[14px] align-text-bottom mr-1">stars</span>{(c.rewardPoints || 0).toLocaleString("vi-VN")} điểm</p>
                 </div>
                 <span className="text-xs text-orange-600 font-bold opacity-0 group-hover:opacity-100 bg-orange-50 px-3 py-1.5 rounded-lg transition-all">Chọn</span>
               </div>

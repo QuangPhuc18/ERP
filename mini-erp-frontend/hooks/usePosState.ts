@@ -98,6 +98,7 @@ export const usePosState = () => {
   const [amountPaidStr, setAmountPaidStr] = useState("");
   const [completedOrder, setCompletedOrder] = useState<Record<string, any> | null>(null);
   const [pendingPaymentOrder, setPendingPaymentOrder] = useState<{orderId: number, totalAmount: number, orderData: any} | null>(null);
+  const [pointsUsed, setPointsUsed] = useState<number>(0);
 
   // Tính năng Quản lý Ca (WorkShift)
   const [currentShift, setCurrentShift] = useState<WorkShiftDTO | null>(null);
@@ -175,7 +176,11 @@ export const usePosState = () => {
   const subtotal = cart.reduce((s, i) => s + (i.selectedPrice ?? i.price) * i.cartQuantity, 0);
   const discVal = parseFloat(discountValue) || 0;
   const discountAmount = discountType === "pct" ? subtotal * (discVal / 100) : Math.min(discVal, subtotal);
-  const totalAmount = Math.round(subtotal - discountAmount);
+  const totalAmountBeforePoints = Math.round(subtotal - discountAmount);
+  // Khách chỉ có thể dùng tối đa số điểm để trả hết bill, và tối đa số điểm mình có
+  const maxPointsCanUse = selectedCustomer ? Math.min(selectedCustomer.rewardPoints || 0, totalAmountBeforePoints) : 0;
+  const actualPointsUsed = Math.min(pointsUsed, maxPointsCanUse);
+  const totalAmount = Math.max(0, totalAmountBeforePoints - actualPointsUsed);
 
   const handleOpenCheckout = () => {
     if (!cart.length) return alert("Giỏ hàng đang trống!");
@@ -194,6 +199,7 @@ export const usePosState = () => {
         amountPaid,
         paymentMethod: paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1),
         note,
+        pointsUsed: actualPointsUsed,
         details: cart.map((c) => ({
           productId: c.id,
           quantity: c.cartQuantity,
@@ -211,6 +217,7 @@ export const usePosState = () => {
         cart: [...cart],
         subtotal,
         discountAmount,
+        pointsUsed: actualPointsUsed,
         totalAmount,
         amountPaid,
         customer: selectedCustomer,
@@ -251,6 +258,7 @@ export const usePosState = () => {
 
       setAmountPaidStr("");
       setOrderNum((n) => n + 1);
+      setPointsUsed(0);
       setShowCheckoutModal(false);
       fetchProducts();
     } catch (error) {
@@ -289,6 +297,7 @@ export const usePosState = () => {
 
     setAmountPaidStr("");
     setOrderNum((n) => n + 1);
+    setPointsUsed(0);
     setShowCheckoutModal(false);
     fetchProducts();
   }, [pendingPaymentOrder, tabCounter, activeTabId, tabs.length, fetchProducts]);
@@ -431,6 +440,7 @@ export const usePosState = () => {
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
     currentTime, paymentMethod, setPaymentMethod, orderNum, setOrderNum,
     showCheckoutModal, setShowCheckoutModal, amountPaidStr, setAmountPaidStr,
+    pointsUsed, setPointsUsed, maxPointsCanUse,
     completedOrder, setCompletedOrder, pendingPaymentOrder, setPendingPaymentOrder,
     showStartShiftModal, setShowStartShiftModal, currentShift, setCurrentShift,
     showEndShiftModal, setShowEndShiftModal, showOrderHistoryModal, setShowOrderHistoryModal, shiftSummary, setShiftSummary,

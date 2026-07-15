@@ -121,6 +121,9 @@ export default function POSPage() {
         totalAmount={state.totalAmount}
         amountPaidStr={state.amountPaidStr}
         setAmountPaidStr={state.setAmountPaidStr}
+        pointsUsed={state.pointsUsed}
+        setPointsUsed={state.setPointsUsed}
+        maxPointsCanUse={state.maxPointsCanUse}
         handleCheckout={state.handleCheckout}
         isProcessing={state.isProcessing}
         completedOrder={state.completedOrder}

@@ -111,6 +111,7 @@ namespace MiniERP.API.Controllers
             public string PaymentMethod { get; set; } = "COD";
             public string? ShippingMethod { get; set; }
             public decimal ShippingFee { get; set; } = 0;
+            public int PointsUsed { get; set; } = 0; // 🎯 Số điểm khách muốn sử dụng
             public List<OnlineOrderDetail> Details { get; set; } = new();
         }
 
@@ -193,6 +194,27 @@ namespace MiniERP.API.Controllers
                     order.OrderDetails.Add(orderDetail);
                 }
 
+                // 🎯 4. XỬ LÝ ĐIỂM (LOYALTY POINTS)
+                if (request.PointsUsed > 0)
+                {
+                    if (customer.RewardPoints < request.PointsUsed)
+                        throw new Exception("Điểm tích lũy không đủ!");
+
+                    // Trừ điểm và tính tiền giảm (1 điểm = 1đ)
+                    customer.RewardPoints -= request.PointsUsed;
+                    order.RewardPointsUsed = request.PointsUsed;
+                    order.DiscountFromPoints = request.PointsUsed;
+
+                    // Giảm tổng tiền
+                    order.TotalAmount -= order.DiscountFromPoints;
+                    if (order.TotalAmount < 0) order.TotalAmount = 0;
+                }
+
+                // Tích điểm mới: 1% tổng tiền sau giảm (1đ = 1 điểm)
+                order.RewardPointsEarned = (int)Math.Floor(order.TotalAmount * 0.01m);
+                customer.RewardPoints += order.RewardPointsEarned;
+                _context.Customers.Update(customer);
+
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
@@ -232,6 +254,43 @@ namespace MiniERP.API.Controllers
             return Ok(posts);
         }
 
+        // Lấy lịch sử đơn hàng của khách hàng (Dùng trong Profile)
+        [HttpGet("orders/history")]
+        public async Task<IActionResult> GetOrderHistory([FromQuery] string phone)
+        {
+            if (string.IsNullOrEmpty(phone))
+                return BadRequest("Số điện thoại không hợp lệ");
+
+            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Phone == phone);
+            if (customer == null)
+                return Ok(new List<object>());
+
+            var orders = await _context.Orders
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.Product)
+                .Where(o => o.CustomerId == customer.Id)
+                .OrderByDescending(o => o.OrderDate)
+                .Select(o => new
+                {
+                    o.Id,
+                    OrderDate = o.OrderDate.ToString("dd/MM/yyyy HH:mm"),
+                    o.TotalAmount,
+                    o.PaymentMethod,
+                    o.Status,
+                    Details = o.OrderDetails.Select(d => new
+                    {
+                        ProductName = d.Product != null ? d.Product.ProductName : "Sản phẩm",
+                        ImageUrl = d.Product != null ? d.Product.ImageUrl : null,
+                        d.Quantity,
+                        d.UnitPrice,
+                        SubTotal = d.Quantity * d.UnitPrice
+                    })
+                })
+                .ToListAsync();
+
+            return Ok(orders);
+        }
+
         // Lấy chi tiết bài viết Journal
         [HttpGet("posts/{id}")]
         public async Task<IActionResult> GetPostById(int id)
@@ -239,6 +298,15 @@ namespace MiniERP.API.Controllers
             var post = await _context.Posts.FindAsync(id);
             if (post == null) return NotFound("Bài viết không tồn tại.");
             return Ok(post);
+        }
+
+        // 🎯 Lấy điểm hiện tại của khách hàng bằng Số điện thoại
+        [HttpGet("customers/{phone}/points")]
+        public async Task<IActionResult> GetCustomerPoints(string phone)
+        {
+            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Phone == phone);
+            if (customer == null) return Ok(new { RewardPoints = 0 });
+            return Ok(new { RewardPoints = customer.RewardPoints });
         }
     }
 }

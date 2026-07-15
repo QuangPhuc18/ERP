@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCart } from "../../CartContext";
 import httpAxios from "../../../services/httpAxios";
+import signalRService from "../../../services/SignalRService";
 import Link from "next/link";
 
 interface Product {
@@ -29,29 +30,44 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState("details");
 
   useEffect(() => {
-    if (id) {
-      // Tải sản phẩm hiện tại
-      httpAxios.get(`/Storefront/products/${id}`)
-        .then((res) => {
-          setProduct(res.data);
-          // Tải danh sách tất cả sản phẩm để lọc sản phẩm liên quan
-          return httpAxios.get(`/Storefront/products`).then((allRes) => {
-            const allProducts: Product[] = allRes.data;
-            // Lọc cùng danh mục, trừ sản phẩm hiện tại, lấy tối đa 4 sản phẩm
-            const related = allProducts
-              .filter((p) => {
-                const isSameCategory = p.categoryId 
-                  ? p.categoryId === res.data.categoryId 
-                  : p.categoryName === res.data.categoryName;
-                return isSameCategory && p.id !== res.data.id;
-              })
-              .slice(0, 4);
-            setRelatedProducts(related);
-          });
-        })
-        .catch((err) => console.error(err))
-        .finally(() => setLoading(false));
-    }
+    const fetchProductDetails = () => {
+      if (id) {
+        httpAxios.get(`/Storefront/products/${id}`)
+          .then((res) => {
+            setProduct(res.data);
+            // Tải danh sách tất cả sản phẩm để lọc sản phẩm liên quan
+            return httpAxios.get(`/Storefront/products`).then((allRes) => {
+              const allProducts: Product[] = allRes.data;
+              const related = allProducts
+                .filter((p) => {
+                  const isSameCategory = p.categoryId 
+                    ? p.categoryId === res.data.categoryId 
+                    : p.categoryName === res.data.categoryName;
+                  return isSameCategory && p.id !== res.data.id;
+                })
+                .slice(0, 4);
+              setRelatedProducts(related);
+            });
+          })
+          .catch((err) => console.error(err))
+          .finally(() => setLoading(false));
+      }
+    };
+
+    fetchProductDetails();
+
+    // Kết nối Websocket (Real-time Inventory Sync)
+    signalRService.startConnection("");
+    const handleInventoryUpdate = () => {
+      console.log("⚡ [Real-time] Cập nhật tồn kho sản phẩm chi tiết!");
+      fetchProductDetails();
+    };
+
+    signalRService.on("InventoryUpdated", handleInventoryUpdate);
+
+    return () => {
+      signalRService.off("InventoryUpdated", handleInventoryUpdate);
+    };
   }, [id]);
 
   if (loading) {

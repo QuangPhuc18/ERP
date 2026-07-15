@@ -5,6 +5,7 @@ import { jwtDecode } from "jwt-decode";
 
 interface CustomerAuthContextType {
   isLoggedIn: boolean;
+  isInitialized: boolean;
   customerName: string | null;
   customerPhone: string | null;
   login: (token: string, name: string) => void;
@@ -15,6 +16,7 @@ const CustomerAuthContext = createContext<CustomerAuthContextType | undefined>(u
 
 export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [customerName, setCustomerName] = useState<string | null>(null);
   const [customerPhone, setCustomerPhone] = useState<string | null>(null);
 
@@ -41,6 +43,7 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         logout();
       }
     }
+    setIsInitialized(true);
   }, []);
 
   const login = (token: string, name: string) => {
@@ -66,7 +69,7 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   return (
-    <CustomerAuthContext.Provider value={{ isLoggedIn, customerName, customerPhone, login, logout }}>
+    <CustomerAuthContext.Provider value={{ isLoggedIn, isInitialized, customerName, customerPhone, login, logout }}>
       {children}
     </CustomerAuthContext.Provider>
   );

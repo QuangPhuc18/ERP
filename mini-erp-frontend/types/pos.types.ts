@@ -32,6 +32,7 @@ export interface Customer {
   phone: string;
   email?: string;
   address?: string;
+  rewardPoints?: number;
 }
 
 export type DiscountType = "pct" | "amt";

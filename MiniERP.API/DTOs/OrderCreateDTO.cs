@@ -29,6 +29,9 @@ namespace MiniERP.API.DTOs
 
         public decimal AmountPaid { get; set; }
 
+        // 🎯 Số điểm khách muốn sử dụng (1 điểm = 1đ)
+        public int PointsUsed { get; set; } = 0;
+
         public string PaymentMethod { get; set; } = "Cash";
 
         public string? Note { get; set; }

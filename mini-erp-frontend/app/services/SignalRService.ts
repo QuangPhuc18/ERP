@@ -4,7 +4,7 @@ class SignalRService {
   private connection: signalR.HubConnection | null = null;
   private isConnected = false;
 
-  public startConnection(token: string) {
+  public startConnection(token: string = "") {
     if (this.connection) return; // Prevent multiple connections
 
     this.connection = new signalR.HubConnectionBuilder()

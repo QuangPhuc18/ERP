@@ -58,17 +58,34 @@ const Header = () => {
         {/* Actions */}
         <div className="flex items-center gap-4 text-sf-primary dark:text-sf-primary-fixed font-sf-body text-base">
           {isLoggedIn ? (
-            <div className="flex items-center gap-3">
-              <span className="font-sf-body text-sm font-semibold hidden md:block">
-                Hi, {customerName}
-              </span>
-              <button 
-                onClick={logout}
-                className="hover:text-sf-primary transition-colors duration-200 group flex items-center justify-center p-2" 
-                title="Đăng xuất"
-              >
-                <span className="material-symbols-outlined group-hover:fill">logout</span>
-              </button>
+            <div className="relative group">
+              <div className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-sf-surface-variant transition-colors">
+                <span className="font-sf-body text-sm font-semibold hidden md:block text-sf-on-surface">
+                  Hi, {customerName}
+                </span>
+                <span className="material-symbols-outlined text-sf-on-surface-variant text-lg">expand_more</span>
+              </div>
+              {/* Dropdown Menu */}
+              <div className="absolute right-0 mt-2 w-48 bg-sf-surface-container-lowest border border-sf-surface-variant rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden">
+                <div className="py-2">
+                  <Link href="/storefront/profile" className="flex items-center gap-3 px-4 py-2 hover:bg-sf-surface-variant text-sf-on-surface font-sf-body text-sm transition-colors">
+                    <span className="material-symbols-outlined text-[18px]">person</span>
+                    Tài khoản của tôi
+                  </Link>
+                  <Link href="/storefront/profile/orders" className="flex items-center gap-3 px-4 py-2 hover:bg-sf-surface-variant text-sf-on-surface font-sf-body text-sm transition-colors">
+                    <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+                    Lịch sử đơn hàng
+                  </Link>
+                  <div className="h-px bg-sf-surface-variant my-1"></div>
+                  <button 
+                    onClick={logout}
+                    className="w-full flex items-center gap-3 px-4 py-2 hover:bg-sf-error-container text-sf-error font-sf-body text-sm transition-colors text-left"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">logout</span>
+                    Đăng xuất
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <Link className="hover:text-sf-primary transition-colors duration-200 group flex items-center justify-center p-2" href="/storefront/auth/login" title="Đăng nhập">

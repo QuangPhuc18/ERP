@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import AuthService from "../services/AuthService";
+import signalRService from "../services/SignalRService";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -26,6 +27,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setExpandedGroups(prev => ({ ...prev, [title]: !prev[title] }));
   };
 
+  // State cho Toast
+  const [toast, setToast] = useState<{show: boolean, orderId: number, message: string}>({show: false, orderId: 0, message: ""});
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("erp_token");
@@ -38,6 +42,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       const name = localStorage.getItem("username") || "User";
       setUserRole(role);
       setUsername(name);
+
+      // Kích hoạt SignalR
+      signalRService.startConnection(token);
+
+      const handleNewOrder = (data: any) => {
+        // Cập nhật Toast
+        setToast({
+          show: true,
+          orderId: data.orderId,
+          message: `Khách ${data.customerName} vừa đặt đơn #${data.orderId} (${data.totalAmount?.toLocaleString()}₫)`
+        });
+
+        // Phát ra tiếng Ting
+        try {
+          const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+          audio.volume = 0.5;
+          audio.play();
+        } catch(e) { }
+
+        // Ẩn Toast sau 5 giây
+        setTimeout(() => {
+          setToast(prev => ({ ...prev, show: false }));
+        }, 5000);
+      };
+
+      signalRService.on("NewOrderReceived", handleNewOrder);
+
+      return () => {
+        signalRService.off("NewOrderReceived", handleNewOrder);
+      };
     }
   }, [router]);
 
@@ -102,6 +136,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: "Quản lý Banner", path: "/dashboard/banners", icon: "view_carousel" },
         { name: "Bài viết / Tạp chí", path: "/dashboard/posts", icon: "article" },
         { name: "Cài đặt Cửa hàng", path: "/dashboard/settings", icon: "settings" },
+        { name: "Đơn hàng online", path: "/dashboard/online-orders", icon: "settings" },
+
       ]
     },
   ];
@@ -227,6 +263,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className={`flex-1 overflow-y-auto ${pathname === '/dashboard/pos' ? 'p-0' : 'p-6'}`}>
           {children}
         </main>
+
+        {/* 🔔 TOAST THÔNG BÁO ĐƠN HÀNG MỚI DÀNH CHO ADMIN / CASHIER 🔔 */}
+        <div className={`fixed top-5 right-5 z-[9999] transition-all duration-500 transform ${toast.show ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0'}`}>
+          <div className="bg-sf-surface-container-lowest border-l-4 border-sf-primary shadow-xl rounded-lg p-4 flex items-start gap-4 min-w-[300px]">
+            <div className="bg-sf-primary-container text-sf-on-primary-container p-2 rounded-full flex shrink-0">
+              <span className="material-symbols-outlined">shopping_cart_checkout</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-sf-display text-sm font-bold text-sf-on-surface mb-1">Đơn hàng Online mới!</h4>
+              <p className="font-sf-body text-xs text-sf-on-surface-variant leading-relaxed">
+                {toast.message}
+              </p>
+              <Link 
+                href="/dashboard/online-orders"
+                onClick={() => setToast(prev => ({ ...prev, show: false }))}
+                className="inline-block mt-2 font-sf-body text-xs font-bold text-sf-primary uppercase hover:underline"
+              >
+                Xem chi tiết →
+              </Link>
+            </div>
+            <button onClick={() => setToast(prev => ({ ...prev, show: false }))} className="text-gray-400 hover:text-gray-600">
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          </div>
+        </div>
 
       </div>
     </div>

@@ -68,19 +68,19 @@ namespace MiniERP.API.Data
 
             // 4. Seeding Data cho Units
             modelBuilder.Entity<Unit>().HasData(
-                new Unit { Id = 1, Name = "CÃ¡i", Description = "ÄÆ¡n vá»‹ Ä‘áº¿m chung" },
-                new Unit { Id = 2, Name = "Há»™p", Description = "Há»™p giáº¥y/nhá»±a" },
-                new Unit { Id = 3, Name = "Lon", Description = "Lon nhÃ´m/sáº¯t" },
-                new Unit { Id = 4, Name = "Chai", Description = "Chai nhá»±a/thá»§y tinh" },
-                new Unit { Id = 5, Name = "Ly", Description = "Ly/Cá»‘c nhá»±a" },
-                new Unit { Id = 6, Name = "GÃ³i", Description = "GÃ³i nilon/giáº¥y" },
-                new Unit { Id = 7, Name = "Bá»‹ch", Description = "Bá»‹ch lá»›n" },
-                new Unit { Id = 8, Name = "TuÃ½p", Description = "TuÃ½p kem/sá»¯a" },
-                new Unit { Id = 9, Name = "Lá»‘c", Description = "Lá»‘c 4-6 há»™p/chai" },
-                new Unit { Id = 10, Name = "Vá»‰", Description = "Vá»‰ trá»©ng/thuá»‘c" },
-                new Unit { Id = 11, Name = "ThÃ¹ng", Description = "ThÃ¹ng carton" },
-                new Unit { Id = 12, Name = "KÃ©t", Description = "KÃ©t nhá»±a Ä‘á»±ng chai" },
-                new Unit { Id = 13, Name = "DÃ¢y", Description = "DÃ¢y nhiá»u gÃ³i nhá»" },
+                new Unit { Id = 1, Name = "Cái", Description = "Đơn vị đếm chung" },
+                new Unit { Id = 2, Name = "Hộp", Description = "Hộp giấy/nhựa" },
+                new Unit { Id = 3, Name = "Lon", Description = "Lon nhôm/sắt" },
+                new Unit { Id = 4, Name = "Chai", Description = "Chai nhựa/thủy tinh" },
+                new Unit { Id = 5, Name = "Ly", Description = "Ly/Cốc nhựa" },
+                new Unit { Id = 6, Name = "Gói", Description = "Gói nilon/giấy" },
+                new Unit { Id = 7, Name = "Bịch", Description = "Bịch lớn" },
+                new Unit { Id = 8, Name = "Tuýp", Description = "Tuýp kem/sữa" },
+                new Unit { Id = 9, Name = "Lốc", Description = "Lốc 4-6 hộp/chai" },
+                new Unit { Id = 10, Name = "Vỉ", Description = "Vỉ trứng/thuốc" },
+                new Unit { Id = 11, Name = "Thùng", Description = "Thùng carton" },
+                new Unit { Id = 12, Name = "Két", Description = "Két nhựa đựng chai" },
+                new Unit { Id = 13, Name = "Dây", Description = "Dây nhiều gói nhỏ" },
                 new Unit { Id = 14, Name = "Kg", Description = "Kilogram" },
                 new Unit { Id = 15, Name = "Gram", Description = "Gram" }
             );

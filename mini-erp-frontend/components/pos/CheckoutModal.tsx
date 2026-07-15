@@ -11,8 +11,10 @@ interface CheckoutModalProps {
   note: string;
   setNote: (val: string) => void;
   totalAmount: number;
-  amountPaidStr: string;
   setAmountPaidStr: (val: string) => void;
+  pointsUsed?: number;
+  setPointsUsed?: (val: number) => void;
+  maxPointsCanUse?: number;
   handleCheckout: () => void;
   isProcessing: boolean;
   completedOrder: Record<string, any> | null;
@@ -24,9 +26,10 @@ interface CheckoutModalProps {
 
 const fmt = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
-export const CheckoutModal: React.FC<CheckoutModalProps> = ({
+const CheckoutModal: React.FC<CheckoutModalProps> = ({
   showCheckoutModal, setShowCheckoutModal, paymentMethod, setPaymentMethod,
   note, setNote, totalAmount, amountPaidStr, setAmountPaidStr,
+  pointsUsed = 0, setPointsUsed = () => {}, maxPointsCanUse = 0,
   handleCheckout, isProcessing, completedOrder, setCompletedOrder, storeInfo, pendingPaymentOrder, setPendingPaymentOrder
 }) => {
   useEffect(() => {
@@ -83,7 +86,37 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     ))}
                   </div>
                 </div>
-                <div><label className="block text-sm font-bold text-gray-500 mb-3 tracking-wide uppercase">Ghi chú</label><textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Nhập ghi chú cho nhà bếp hoặc thu ngân..." className="w-full h-32 p-4 bg-white border border-gray-200/60 rounded-[20px] text-[15px] outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 transition-all resize-none shadow-sm placeholder:text-gray-400 font-medium"></textarea></div>
+                <div><label className="block text-sm font-bold text-gray-500 mb-3 tracking-wide uppercase">Ghi chú</label><textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Nhập ghi chú cho nhà bếp hoặc thu ngân..." className="w-full h-24 p-4 bg-white border border-gray-200/60 rounded-[20px] text-[15px] outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-50 transition-all resize-none shadow-sm placeholder:text-gray-400 font-medium"></textarea></div>
+                {maxPointsCanUse > 0 && (
+                  <div>
+                    <label className="block text-sm font-bold text-orange-500 mb-2 tracking-wide uppercase flex items-center justify-between">
+                      <span>Dùng điểm tích lũy</span>
+                      <span className="text-gray-500 font-normal">Tối đa: {fmt(maxPointsCanUse).replace('đ', '')} đ</span>
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max={maxPointsCanUse} 
+                        step="1000"
+                        value={pointsUsed} 
+                        onChange={(e) => setPointsUsed(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500" 
+                      />
+                      <input 
+                        type="text" 
+                        value={pointsUsed}
+                        onChange={(e) => {
+                           let val = Number(e.target.value.replace(/\D/g, ''));
+                           if (val > maxPointsCanUse) val = maxPointsCanUse;
+                           setPointsUsed(val);
+                        }}
+                        className="w-24 text-center py-2 px-2 border border-gray-200 rounded-xl outline-none focus:border-orange-500 font-bold"
+                      />
+                    </div>
+                    {pointsUsed > 0 && <p className="text-xs text-orange-600 mt-2 italic font-medium">- Sẽ trừ {pointsUsed} điểm vào hoá đơn này</p>}
+                  </div>
+                )}
               </div>
             </div>
             <div className="w-1/2 p-10 flex flex-col bg-white relative">
@@ -135,7 +168,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         <div className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 backdrop-blur-md animate-fade-in no-print">
           <div className="bg-gray-100 rounded-[32px] w-full max-w-sm overflow-hidden flex flex-col shadow-2xl relative">
             <div className="p-6 pb-0 flex flex-col items-center"><div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4"><span className="material-symbols-outlined text-4xl">check_circle</span></div><h2 className="text-xl font-black text-gray-900 mb-2">Thanh toán thành công!</h2><p className="text-sm text-gray-500 font-medium mb-6">Đơn hàng #{completedOrder.orderNum}</p></div>
-            <div className="bg-white mx-6 p-6 shadow-sm border border-gray-200/60 rounded-t-2xl border-b-0 relative"><div className="absolute top-0 left-0 w-full h-2 -translate-y-1/2 flex justify-around overflow-hidden">{Array.from({length: 12}).map((_, i) => <div key={i} className="w-2 h-2 bg-gray-100 rounded-full"></div>)}</div><div className="text-center mb-4"><p className="font-bold text-gray-800 text-lg">{storeInfo.name}</p><p className="text-xs text-gray-500">{storeInfo.address}</p></div><div className="border-t border-dashed border-gray-300 py-3 mb-3"><div className="flex justify-between text-sm font-bold"><span className="text-gray-500">Tổng cộng:</span><span>{fmt(completedOrder.totalAmount)}</span></div><div className="flex justify-between text-sm font-bold"><span className="text-gray-500">Khách đưa:</span><span>{fmt(completedOrder.amountPaid)}</span></div></div></div>
+            <div className="bg-white mx-6 p-6 shadow-sm border border-gray-200/60 rounded-t-2xl border-b-0 relative"><div className="absolute top-0 left-0 w-full h-2 -translate-y-1/2 flex justify-around overflow-hidden">{Array.from({length: 12}).map((_, i) => <div key={i} className="w-2 h-2 bg-gray-100 rounded-full"></div>)}</div><div className="text-center mb-4"><p className="font-bold text-gray-800 text-lg">{storeInfo.name}</p><p className="text-xs text-gray-500">{storeInfo.address}</p></div><div className="border-t border-dashed border-gray-300 py-3 mb-3"><div className="flex justify-between text-sm font-bold"><span className="text-gray-500">Tổng cộng:</span><span>{fmt(completedOrder.totalAmount)}</span></div>
+            {completedOrder.pointsUsed > 0 && <div className="flex justify-between text-sm font-bold text-orange-600"><span>Trừ điểm:</span><span>-{fmt(completedOrder.pointsUsed)}</span></div>}
+            <div className="flex justify-between text-sm font-bold"><span className="text-gray-500">Khách đưa:</span><span>{fmt(completedOrder.amountPaid)}</span></div></div></div>
             <div className="p-6 bg-white border-t border-gray-100/50 pt-4 flex gap-3"><button onClick={() => window.print()} className="flex-1 py-3.5 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"><span className="material-symbols-outlined text-[20px]">print</span> IN BILL</button><button onClick={() => setCompletedOrder(null)} className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all">ĐÓNG</button></div>
           </div>
         </div>
@@ -161,10 +196,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
             ))}
           </div>
-          <div className="text-[11px] mb-4 border-b border-dashed border-black pb-3 space-y-1"><div className="flex justify-between"><span>Cộng tiền hàng:</span> <span>{fmt(completedOrder.subtotal)}</span></div>{completedOrder.discountAmount > 0 && <div className="flex justify-between"><span>Chiết khấu:</span> <span>-{fmt(completedOrder.discountAmount)}</span></div>}<div className="flex justify-between font-bold text-[14px] mt-1 pt-1 border-t border-black"><span>TỔNG CỘNG:</span> <span>{fmt(completedOrder.totalAmount)}</span></div><div className="flex justify-between mt-2"><span>Khách thanh toán:</span> <span>{fmt(completedOrder.amountPaid)}</span></div><div className="flex justify-between"><span>Tiền thừa/Ghi nợ:</span> <span>{fmt(Math.abs(completedOrder.amountPaid - completedOrder.totalAmount))}</span></div></div>
+          <div className="text-[11px] mb-4 border-b border-dashed border-black pb-3 space-y-1"><div className="flex justify-between"><span>Cộng tiền hàng:</span> <span>{fmt(completedOrder.subtotal)}</span></div>{completedOrder.discountAmount > 0 && <div className="flex justify-between"><span>Chiết khấu:</span> <span>-{fmt(completedOrder.discountAmount)}</span></div>}
+          {completedOrder.pointsUsed > 0 && <div className="flex justify-between text-orange-600 font-bold"><span>Trừ điểm:</span> <span>-{fmt(completedOrder.pointsUsed)}</span></div>}
+          <div className="flex justify-between font-bold text-[14px] mt-1 pt-1 border-t border-black"><span>TỔNG CỘNG:</span> <span>{fmt(completedOrder.totalAmount)}</span></div><div className="flex justify-between mt-2"><span>Khách thanh toán:</span> <span>{fmt(completedOrder.amountPaid)}</span></div><div className="flex justify-between"><span>Tiền thừa/Ghi nợ:</span> <span>{fmt(Math.abs(completedOrder.amountPaid - completedOrder.totalAmount))}</span></div>
+          {completedOrder.customer && <div className="flex justify-between text-gray-500 italic"><span>Điểm thưởng nhận:</span> <span>+{Math.floor(completedOrder.totalAmount * 0.01)} điểm</span></div>}
+          </div>
           <div className="text-center text-[11px] italic">Cảm ơn quý khách và hẹn gặp lại!</div>
         </div>
       )}
     </>
   );
 };
+
+export { CheckoutModal };

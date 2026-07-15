@@ -20,9 +20,23 @@ namespace MiniERP.API.Controllers
 
         // GET: api/Posts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Post>>> GetPosts()
+        public async Task<IActionResult> GetPosts()
         {
-            return await _context.Posts.OrderByDescending(p => p.PublishDate).ToListAsync();
+            var posts = await _context.Posts
+                .OrderByDescending(p => p.PublishDate)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Title,
+                    p.Slug,
+                    p.ImageUrl,
+                    p.Topic,
+                    p.PublishDate,
+                    p.Author
+                })
+                .ToListAsync();
+            
+            return Ok(posts);
         }
 
         // GET: api/Posts/5

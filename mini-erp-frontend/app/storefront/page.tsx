@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "./CartContext";
 import httpAxios from "../services/httpAxios";
+import signalRService from "../services/SignalRService";
 import HeroBanner from "./components/HeroBanner";
 import CategoryGrid from "./components/CategoryGrid";
 
@@ -30,15 +31,19 @@ export default function StorefrontHomePage() {
   const { addToCart } = useCart();
 
   useEffect(() => {
-    // Tách riêng fetch products để không bị chờ fetch posts
-    httpAxios.get("/Storefront/products")
-      .then((res) => {
-        setProducts(res.data);
-      })
-      .catch((err) => {
-        console.error("Lỗi lấy dữ liệu sản phẩm:", err);
-      })
-      .finally(() => setLoading(false));
+    // Hàm fetch products độc lập để tái sử dụng
+    const fetchProducts = () => {
+      httpAxios.get("/Storefront/products")
+        .then((res) => {
+          setProducts(res.data);
+        })
+        .catch((err) => {
+          console.error("Lỗi lấy dữ liệu sản phẩm:", err);
+        })
+        .finally(() => setLoading(false));
+    };
+
+    fetchProducts();
 
     // Fetch posts chạy ngầm
     httpAxios.get("/Storefront/posts")
@@ -48,6 +53,20 @@ export default function StorefrontHomePage() {
       .catch((err) => {
         console.error("Lỗi lấy bài viết:", err);
       });
+
+    // Kết nối Websocket (Real-time Inventory Sync)
+    signalRService.startConnection("");
+    const handleInventoryUpdate = () => {
+      console.log("⚡ [Real-time] Cập nhật tồn kho từ server!");
+      fetchProducts();
+    };
+
+    signalRService.on("InventoryUpdated", handleInventoryUpdate);
+
+    // Cleanup khi component unmount
+    return () => {
+      signalRService.off("InventoryUpdated", handleInventoryUpdate);
+    };
   }, []);
 
   return (

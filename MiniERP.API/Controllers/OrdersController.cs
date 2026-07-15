@@ -107,10 +107,11 @@ namespace MiniERP.API.Controllers
                 return BadRequest("Đơn hàng phải có ít nhất 1 sản phẩm!");
 
             // Nếu có gửi CustomerId lên thì mới kiểm tra xem khách đó có tồn tại không
+            Customer? customer = null;
             if (dto.CustomerId.HasValue)
             {
-                var customerExists = await _context.Customers.AnyAsync(c => c.Id == dto.CustomerId.Value);
-                if (!customerExists) return BadRequest("Khách hàng không tồn tại!");
+                customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == dto.CustomerId.Value);
+                if (customer == null) return BadRequest("Khách hàng không tồn tại!");
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -187,6 +188,35 @@ namespace MiniERP.API.Controllers
                     order.OrderDetails.Add(orderDetail);
                 }
 
+                // 🎯 XỬ LÝ ĐIỂM (LOYALTY POINTS) CHO KHÁCH HÀNG (NẾU CÓ)
+                if (customer != null)
+                {
+                    if (dto.PointsUsed > 0)
+                    {
+                        if (customer.RewardPoints < dto.PointsUsed)
+                            throw new Exception("Điểm tích lũy của khách hàng không đủ!");
+
+                        // Trừ điểm và tính tiền giảm (1 điểm = 1đ)
+                        customer.RewardPoints -= dto.PointsUsed;
+                        order.RewardPointsUsed = dto.PointsUsed;
+                        order.DiscountFromPoints = dto.PointsUsed;
+
+                        // Giảm tổng tiền
+                        order.TotalAmount -= order.DiscountFromPoints;
+                        if (order.TotalAmount < 0) order.TotalAmount = 0;
+                    }
+
+                    // Tích điểm mới: 1% tổng tiền sau giảm (1đ = 1 điểm)
+                    order.RewardPointsEarned = (int)Math.Floor(order.TotalAmount * 0.01m);
+                    customer.RewardPoints += order.RewardPointsEarned;
+                    
+                    _context.Customers.Update(customer);
+                }
+                else if (dto.PointsUsed > 0)
+                {
+                    throw new Exception("Không thể dùng điểm nếu không có thông tin khách hàng!");
+                }
+
                 // Xác định trạng thái công nợ
                 if (order.PaymentMethod != "Transfer" && order.AmountPaid < order.TotalAmount)
                 {
@@ -240,7 +270,7 @@ namespace MiniERP.API.Controllers
 
         // 3. Hủy hóa đơn & Hoàn kho
         [HttpPut("{id}/cancel")]
-        [Authorize(Roles = "admin,Admin")]
+        [Authorize(Roles = "admin,Admin,cashier,Cashier")]
         public async Task<IActionResult> CancelOrder(int id)
         {
             var order = await _context.Orders
@@ -348,6 +378,54 @@ namespace MiniERP.API.Controllers
             }
 
             return Ok(new { Message = "Không khớp được đơn hàng nào" });
+        }
+
+        // Cập nhật trạng thái đơn hàng (Đặc biệt cho đơn Online)
+        [HttpPut("{id}/status")]
+        [Authorize(Roles = "admin,Admin,cashier,Cashier")]
+        public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] string newStatus)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails) // Lấy kèm chi tiết để phòng trường hợp hoàn kho
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null) return NotFound("Không tìm thấy đơn hàng");
+
+            // Nếu đơn hàng bị HỦY và trạng thái trước đó chưa bị HỦY
+            if (newStatus == "Cancelled" && order.Status != "Cancelled")
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    // Trả lại số lượng vào kho
+                    var product = await _context.Products.FindAsync(detail.ProductId);
+                    if (product != null)
+                    {
+                        product.Quantity += detail.Quantity;
+                        
+                        // Ghi nhận lịch sử hoàn kho
+                        _context.InventoryTransactions.Add(new InventoryTransaction
+                        {
+                            TransactionDate = DateTime.Now,
+                            ProductId = detail.ProductId,
+                            Quantity = detail.Quantity,
+                            TransactionType = "IMPORT", // Hoàn kho coi như nhập
+                            ReferenceId = order.Id,
+                            Note = $"Hoàn kho do Hủy đơn Online #{order.Id}"
+                        });
+                    }
+                }
+                
+                // Bắn SignalR cập nhật tồn kho cho web
+                await _hubContext.Clients.All.SendAsync("InventoryUpdated");
+            }
+
+            order.Status = newStatus;
+            await _context.SaveChangesAsync();
+            
+            // Bắn tín hiệu Realtime cập nhật trạng thái
+            await _hubContext.Clients.All.SendAsync("OrderStatusChanged", id, newStatus);
+            
+            return Ok(new { Message = "Đã cập nhật trạng thái đơn hàng thành công" });
         }
     }
 }

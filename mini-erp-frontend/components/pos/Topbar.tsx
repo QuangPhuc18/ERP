@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { ISearch } from "../shared/Icons";
 import AuthService from "../../app/services/AuthService";
 
@@ -19,6 +20,9 @@ export const Topbar: React.FC<TopbarProps> = ({ currentTime, searchQuery, setSea
           <span className="text-[10px] text-orange-600 font-bold bg-orange-50 px-2.5 py-1 rounded-full uppercase tracking-widest border border-orange-100/50">Quầy #01</span>
         </div>
         <div className="flex items-center gap-2 lg:hidden">
+          <Link href="/dashboard/online-orders" className="p-2 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-100" title="Đơn hàng Online">
+            <span className="material-symbols-outlined text-[18px] block">shopping_bag</span>
+          </Link>
           <button onClick={() => setShowOrderHistoryModal(true)} className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-100" title="Lịch sử đơn">
             <span className="material-symbols-outlined text-[18px] block">receipt_long</span>
           </button>
@@ -50,6 +54,9 @@ export const Topbar: React.FC<TopbarProps> = ({ currentTime, searchQuery, setSea
           <span className="material-symbols-outlined text-[18px]">schedule</span>
           {currentTime}
         </span>
+        <Link href="/dashboard/online-orders" className="flex items-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-sm font-bold rounded-xl transition-all shadow-sm active:scale-95 tracking-wide">
+          <span className="material-symbols-outlined text-[18px]">shopping_bag</span> ĐƠN ONLINE
+        </Link>
         <button onClick={() => setShowOrderHistoryModal(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm font-bold rounded-xl transition-all shadow-sm active:scale-95 tracking-wide">
           <span className="material-symbols-outlined text-[18px]">receipt_long</span> LỊCH SỬ ĐƠN
         </button>

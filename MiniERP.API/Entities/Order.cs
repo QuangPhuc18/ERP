@@ -40,6 +40,13 @@ namespace MiniERP.API.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal ShippingFee { get; set; } = 0;
 
+        // 🎯 THÊM THÔNG TIN TÍCH ĐIỂM
+        public int RewardPointsEarned { get; set; } = 0; // Số điểm cộng thêm từ hóa đơn này
+        public int RewardPointsUsed { get; set; } = 0; // Số điểm khách đã xài
+        
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal DiscountFromPoints { get; set; } = 0; // Số tiền được giảm do xài điểm
+
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
     }
 }

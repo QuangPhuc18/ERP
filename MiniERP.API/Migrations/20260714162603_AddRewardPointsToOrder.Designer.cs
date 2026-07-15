@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniERP.API.Data;
 
@@ -11,9 +12,11 @@ using MiniERP.API.Data;
 namespace MiniERP.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260714162603_AddRewardPointsToOrder")]
+    partial class AddRewardPointsToOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1001,80 +1004,80 @@ namespace MiniERP.API.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "Đơn vị đếm chung",
-                            Name = "Cái"
+                            Description = "ÄÆ¡n vá»‹ Ä‘áº¿m chung",
+                            Name = "CÃ¡i"
                         },
                         new
                         {
                             Id = 2,
-                            Description = "Hộp giấy/nhựa",
-                            Name = "Hộp"
+                            Description = "Há»™p giáº¥y/nhá»±a",
+                            Name = "Há»™p"
                         },
                         new
                         {
                             Id = 3,
-                            Description = "Lon nhôm/sắt",
+                            Description = "Lon nhÃ´m/sáº¯t",
                             Name = "Lon"
                         },
                         new
                         {
                             Id = 4,
-                            Description = "Chai nhựa/thủy tinh",
+                            Description = "Chai nhá»±a/thá»§y tinh",
                             Name = "Chai"
                         },
                         new
                         {
                             Id = 5,
-                            Description = "Ly/Cốc nhựa",
+                            Description = "Ly/Cá»‘c nhá»±a",
                             Name = "Ly"
                         },
                         new
                         {
                             Id = 6,
-                            Description = "Gói nilon/giấy",
-                            Name = "Gói"
+                            Description = "GÃ³i nilon/giáº¥y",
+                            Name = "GÃ³i"
                         },
                         new
                         {
                             Id = 7,
-                            Description = "Bịch lớn",
-                            Name = "Bịch"
+                            Description = "Bá»‹ch lá»›n",
+                            Name = "Bá»‹ch"
                         },
                         new
                         {
                             Id = 8,
-                            Description = "Tuýp kem/sữa",
-                            Name = "Tuýp"
+                            Description = "TuÃ½p kem/sá»¯a",
+                            Name = "TuÃ½p"
                         },
                         new
                         {
                             Id = 9,
-                            Description = "Lốc 4-6 hộp/chai",
-                            Name = "Lốc"
+                            Description = "Lá»‘c 4-6 há»™p/chai",
+                            Name = "Lá»‘c"
                         },
                         new
                         {
                             Id = 10,
-                            Description = "Vỉ trứng/thuốc",
-                            Name = "Vỉ"
+                            Description = "Vá»‰ trá»©ng/thuá»‘c",
+                            Name = "Vá»‰"
                         },
                         new
                         {
                             Id = 11,
-                            Description = "Thùng carton",
-                            Name = "Thùng"
+                            Description = "ThÃ¹ng carton",
+                            Name = "ThÃ¹ng"
                         },
                         new
                         {
                             Id = 12,
-                            Description = "Két nhựa đựng chai",
-                            Name = "Két"
+                            Description = "KÃ©t nhá»±a Ä‘á»±ng chai",
+                            Name = "KÃ©t"
                         },
                         new
                         {
                             Id = 13,
-                            Description = "Dây nhiều gói nhỏ",
-                            Name = "Dây"
+                            Description = "DÃ¢y nhiá»u gÃ³i nhá»",
+                            Name = "DÃ¢y"
                         },
                         new
                         {
