@@ -225,7 +225,7 @@ export const usePosState = () => {
       };
 
       if (paymentMethod === "transfer") {
-        setPendingPaymentOrder({ orderId: res.orderId, totalAmount, orderData });
+        setPendingPaymentOrder({ orderId: res.orderId as number, totalAmount, orderData });
         setIsProcessing(false);
         return;
       }
