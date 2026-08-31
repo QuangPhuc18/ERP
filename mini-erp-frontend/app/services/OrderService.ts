@@ -24,6 +24,7 @@ export interface OrderCreateDTO {
 // 3. Kiểu dữ liệu khi lấy danh sách Hóa đơn từ C# về
 export interface OrderDTO {
   id: number;
+  orderId?: number;
   customerName?: string;
   orderDate: string;
   totalAmount: number;
