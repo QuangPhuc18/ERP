@@ -11,6 +11,7 @@ interface CheckoutModalProps {
   note: string;
   setNote: (val: string) => void;
   totalAmount: number;
+  amountPaidStr: string;
   setAmountPaidStr: (val: string) => void;
   pointsUsed?: number;
   setPointsUsed?: (val: number) => void;

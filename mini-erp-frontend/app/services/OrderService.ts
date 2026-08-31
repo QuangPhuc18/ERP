@@ -17,6 +17,7 @@ export interface OrderCreateDTO {
   amountPaid?: number;
   paymentMethod?: string;
   note?: string;
+  pointsUsed?: number;
   details: OrderDetailDTO[];
 }
 
