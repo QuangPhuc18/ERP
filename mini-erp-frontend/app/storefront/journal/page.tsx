@@ -20,12 +20,12 @@ export default function JournalPage() {
     <div className="max-w-screen-2xl mx-auto px-5 md:px-16 py-12">
       {/* Header Section */}
       <header className="mb-12 flex flex-col items-center text-center">
-        <h1 className="font-sf-display text-sf-display-lg-mobile md:text-sf-display-lg text-sf-primary mb-6">The Journal</h1>
+        <h1 className="font-sf-display text-sf-display-lg-mobile md:text-sf-display-lg text-sf-primary mb-6">Bài viết</h1>
         
         {/* Search & Filters */}
         <div className="w-full max-w-3xl flex flex-col items-center gap-6">
           <div className="relative w-full">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sf-on-surface-variant">search</span>
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-sf-on-surface-variant">Search</span>
             <input 
               className="w-full bg-sf-surface-container-lowest border-0 border-b-2 border-sf-surface-variant focus:border-sf-primary focus:ring-0 pl-12 pr-4 py-3 font-sf-body text-sf-body-md transition-colors placeholder:text-sf-on-surface-variant/60 outline-none" 
               placeholder="Search articles..." 
@@ -33,12 +33,7 @@ export default function JournalPage() {
             />
           </div>
           <div className="flex flex-wrap justify-center gap-3">
-            <button className="px-4 py-2 bg-sf-primary text-sf-on-primary font-sf-body text-sf-label-caps uppercase tracking-wider rounded-full hover:bg-sf-primary/90 transition-colors">All</button>
-            <button className="px-4 py-2 bg-sf-surface-container-low text-sf-on-surface-variant font-sf-body text-sf-label-caps uppercase tracking-wider rounded-full hover:bg-sf-surface-container-high transition-colors">Recipes</button>
-            <button className="px-4 py-2 bg-sf-surface-container-low text-sf-on-surface-variant font-sf-body text-sf-label-caps uppercase tracking-wider rounded-full hover:bg-sf-surface-container-high transition-colors">Sustainability</button>
-            <button className="px-4 py-2 bg-sf-surface-container-low text-sf-on-surface-variant font-sf-body text-sf-label-caps uppercase tracking-wider rounded-full hover:bg-sf-surface-container-high transition-colors">Growers</button>
-            <button className="px-4 py-2 bg-sf-surface-container-low text-sf-on-surface-variant font-sf-body text-sf-label-caps uppercase tracking-wider rounded-full hover:bg-sf-surface-container-high transition-colors">Health</button>
-          </div>
+          </div>  
         </div>
       </header>
 

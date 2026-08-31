@@ -181,7 +181,7 @@ export default function StorefrontHomePage() {
 
       {/* Editorial/Blog */}
       <section className="max-w-7xl mx-auto px-5 md:px-16 py-12 border-t border-sf-surface-variant">
-        <h2 className="font-sf-display text-2xl font-bold mb-12 text-center">The Journal</h2>
+        <h2 className="font-sf-display text-2xl font-bold mb-12 text-center">Bài viết</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
           {posts.length > 0 ? (
             posts.map(post => (

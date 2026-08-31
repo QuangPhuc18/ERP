@@ -72,10 +72,7 @@ const Header = () => {
                     <span className="material-symbols-outlined text-[18px]">person</span>
                     Tài khoản của tôi
                   </Link>
-                  <Link href="/storefront/profile/orders" className="flex items-center gap-3 px-4 py-2 hover:bg-sf-surface-variant text-sf-on-surface font-sf-body text-sm transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-                    Lịch sử đơn hàng
-                  </Link>
+               
                   <div className="h-px bg-sf-surface-variant my-1"></div>
                   <button 
                     onClick={logout}
