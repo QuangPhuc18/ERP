@@ -236,7 +236,6 @@ export const usePosState = () => {
         const paid = Math.min(amountPaid, totalAmount);
         const debtAmt = Math.max(0, totalAmount - amountPaid);
         if (paymentMethod === "cash") cash += paid;
-        if (paymentMethod === "transfer") transfer += paid;
         if (paymentMethod === "card") card += paid;
         debt += debtAmt;
         const items = cart.reduce((s, i) => s + i.cartQuantity, 0);
