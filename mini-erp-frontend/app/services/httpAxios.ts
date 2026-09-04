@@ -3,7 +3,7 @@ import axios from 'axios';
 // Khởi tạo một instance riêng biệt cho hệ thống ERP
 const httpAxios = axios.create({
   // URL trỏ thẳng về Backend C# (Có thể sửa thành file .env sau)
-  baseURL: 'https://localhost:7280/api', 
+  baseURL: 'http://api-nexerp.somee.com/api', 
   timeout: 20000,
   headers: {
     'Content-Type': 'application/json',
