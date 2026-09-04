@@ -8,7 +8,7 @@ class SignalRService {
     if (this.connection) return; // Prevent multiple connections
 
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://api-nexerp.somee.com/appHub", {
+      .withUrl("/appHub", {
         accessTokenFactory: () => token,
       })
       .withAutomaticReconnect()

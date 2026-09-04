@@ -11,7 +11,7 @@ export interface StoreSettingDTO {
   logoUrl: string;
 }
 
-const API_URL = 'http://api-nexerp.somee.com/api/StoreSettings';
+const API_URL = '/api/StoreSettings';
 
 class SettingsService {
   async getStoreSetting(): Promise<StoreSettingDTO> {
@@ -28,7 +28,7 @@ class SettingsService {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await axios.post('http://api-nexerp.somee.com/api/Upload/image', formData, {
+    const response = await axios.post('/api/Upload/image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
