@@ -27,12 +27,31 @@ httpAxios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+const replaceUrls = (obj: any): any => {
+  if (typeof obj === 'string') {
+    return obj.replace(/http:\/\/api-nexerp\.somee\.com\//g, '/');
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(replaceUrls);
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const newObj: any = {};
+    for (const key in obj) {
+      newObj[key] = replaceUrls(obj[key]);
+    }
+    return newObj;
+  }
+  return obj;
+};
+
 // Response Interceptor: Bảo vệ cửa vào
 // Tóm gọn mọi dữ liệu Server trả về, xử lý lỗi 401 (Hết hạn Token)
 httpAxios.interceptors.response.use(
   (response) => {
-    // Nếu API C# của bạn thường bọc dữ liệu trong response.data (ví dụ: { message: "...", data: [...] })
-    // Bạn có thể return response.data luôn ở đây cho gọn, nhưng tạm thời cứ giữ nguyên response.
+    // Tự động chuyển đổi toàn bộ URL ảnh thành đường dẫn tương đối để tránh Mixed Content
+    if (response.data) {
+      response.data = replaceUrls(response.data);
+    }
     return response; 
   },
   (error) => {
