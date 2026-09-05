@@ -99,8 +99,10 @@ export default function PurchaseOrdersPage() {
       } else {
         const uom = product.productUoMs?.find(u => u.unitId === unitId);
         if (uom) {
-          // Gợi ý giá vốn = Giá bán UoM * 0.7
-          setSelectedUnitPrice(uom.price * 0.7); 
+          // Gợi ý giá vốn = Giá vốn cơ bản * tỷ lệ, hoặc Giá bán UoM * 0.7
+          const baseCost = product.costPrice || (product.price * 0.7);
+          const suggestedCost = baseCost * (uom.conversionFactor || 1);
+          setSelectedUnitPrice(Math.round(suggestedCost));  
         }
       }
     }

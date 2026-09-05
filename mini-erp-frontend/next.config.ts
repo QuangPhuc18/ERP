@@ -1,4 +1,4 @@
-﻿import type { NextConfig } from "next";
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async redirects() {
@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
       {
         source: "/appHub/:path*",
         destination: "http://api-nexerp.somee.com/appHub/:path*",
+      },
+      {
+        source: "/uploads/:path*",
+        destination: "http://api-nexerp.somee.com/uploads/:path*",
       }
     ]
   }

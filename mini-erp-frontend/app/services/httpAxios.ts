@@ -37,10 +37,19 @@ httpAxios.interceptors.response.use(
   },
   (error) => {
     if (error?.response?.status === 401 && typeof window !== 'undefined') {
-      console.warn("Token đã hết hạn hoặc không hợp lệ. Đăng xuất!");
-      localStorage.removeItem('erp_token');
-      // Tự động đẩy người dùng văng ra trang Login
-      window.location.href = "/auth/login"; 
+      const configUrl = error.config?.url || "";
+      // Không tự động redirect nếu đang gọi API login (sai pass)
+      if (!configUrl.toLowerCase().includes("login")) {
+        console.warn("Token đã hết hạn hoặc không hợp lệ. Đăng xuất!");
+        localStorage.removeItem('erp_token');
+        
+        // Nhảy đúng trang login tùy theo khu vực đang đứng
+        if (window.location.pathname.startsWith("/storefront")) {
+          window.location.href = "/storefront/auth/login";
+        } else {
+          window.location.href = "/auth/login"; 
+        }
+      }
     }
     return Promise.reject(error);
   }
