@@ -15,8 +15,22 @@ const httpAxios = axios.create({
 // Tự động gắn thẻ Token vào mọi Request trước khi nó bay lên Server C#
 httpAxios.interceptors.request.use(
   (config) => {
-    // Chỉ lấy localStorage khi chạy trên trình duyệt (tránh lỗi Next.js SSR)
     if (typeof window !== 'undefined') {
+      const isDemo = localStorage.getItem('is_demo_mode') === 'true';
+      const method = config.method?.toLowerCase();
+      const url = config.url?.toLowerCase() || '';
+
+      // Block write operations in demo mode (allow login/logout to function)
+      if (isDemo && ['post', 'put', 'delete'].includes(method || '') && !url.includes('login') && !url.includes('logout')) {
+        alert("🔒 TÀI KHOẢN DEMO: Bạn đang ở chế độ Chỉ Xem (Read-only).\nCác thao tác Thêm/Sửa/Xóa dữ liệu đã bị khóa để bảo vệ hệ thống!");
+        return Promise.reject({
+          isAxiosError: true,
+          response: {
+            data: "Tài khoản Demo chỉ có quyền xem (Read-only)."
+          }
+        });
+      }
+
       const token = localStorage.getItem('erp_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
