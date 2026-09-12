@@ -207,7 +207,7 @@ export default function AuthLoginPage() {
               {/* Divider */}
               <div className="relative py-4">
                 <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-[#c5c6cd]/30"></span></div>
-                <div className="relative flex justify-center"><span className="bg-white px-3 text-[12px] text-[#44474c]/50 uppercase tracking-widest font-bold">Dành cho Nhà tuyển dụng</span></div>
+                <div className="relative flex justify-center"><span className="bg-white px-3 text-[12px] text-[#44474c]/50 uppercase tracking-widest font-bold">HOẶC</span></div>
               </div>
 
               {/* Demo Login Button */}
@@ -218,7 +218,7 @@ export default function AuthLoginPage() {
                 type="button"
               >
                 <span className="material-symbols-outlined text-[20px]">visibility</span>
-                Trải nghiệm bản Demo (Chỉ xem)
+                Đăng nhập tài khoản Khách (Guest)
               </button>
             </form>
 
